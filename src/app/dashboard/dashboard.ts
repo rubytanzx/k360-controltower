@@ -3,7 +3,7 @@ import { RouterLink } from '@angular/router';
 import { TablerIconComponent } from '@tabler/icons-angular';
 import { FilterBar } from '../shared/filter-bar/filter-bar';
 
-type KpiVariant = 'sparkline' | 'arc' | 'placeholder' | 'status' | 'target' | 'uptime' | 'response';
+type KpiVariant = 'sparkline' | 'arc' | 'placeholder' | 'status' | 'target' | 'uptime' | 'response' | 'metric';
 
 interface Kpi {
   title: string;
@@ -15,6 +15,7 @@ interface Kpi {
   placeholder?: string;
   icon?: string;
   arcPct?: number;
+  tone?: string;
 }
 
 interface Topic {
@@ -46,16 +47,21 @@ export class Dashboard {
     },
     {
       title: 'Overall Coverage',
-      variant: 'arc',
+      variant: 'metric',
+      icon: 'target',
+      tone: 'green',
       value: '80%',
       sub: 'sources ingested',
       arcPct: 80,
     },
     {
       title: 'Staff Adoption',
-      variant: 'target',
+      variant: 'metric',
+      icon: 'users',
+      tone: 'cyan',
       value: '67%',
       sub: 'of WBG staff actively using K360',
+      arcPct: 67,
     },
     {
       title: 'Avg Query Response Time',

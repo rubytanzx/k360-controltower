@@ -85,22 +85,6 @@
       <p class="ai-summary-text">{{ aiSummary }}</p>
     </div>
 
-    <div class="prompt-pills-section">
-      @for (t of topThemes; track t.id) {
-        <div class="prompt-pills-row">
-          <span class="pills-theme-label">
-            <span class="pills-theme-dot" [style.background]="t.color"></span>
-            {{ t.name }}
-          </span>
-          <div class="pills-list">
-            @for (p of t.prompts; track p) {
-              <span class="prompt-pill" [style.border-color]="t.color + '55'">{{ p }}</span>
-            }
-          </div>
-        </div>
-      }
-    </div>
-
     <div class="treemap">
       @for (row of treemap; track $index; let rowIdx = $index) {
         <div class="treemap-row" [style.flex]="rowFlex(row)">
@@ -156,6 +140,22 @@
         </div>
       }
     </div>
+
+    <div class="prompt-pills-section">
+      @for (t of topThemes; track t.id) {
+        <div class="prompt-pills-row">
+          <span class="pills-theme-label">
+            <span class="pills-theme-dot" [style.background]="t.color"></span>
+            {{ t.name }}
+          </span>
+          <div class="pills-list">
+            @for (p of t.prompts; track p) {
+              <span class="prompt-pill" [style.border-color]="t.color + '55'">{{ p }}</span>
+            }
+          </div>
+        </div>
+      }
+    </div>
   </article>
 </section>
 
@@ -200,7 +200,6 @@
         </li>
       }
     </ul>
-    <p class="mix-hint">Stacked bars colored by topic — hover for details.</p>
   </article>
 
   <article class="card">

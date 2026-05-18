@@ -10,7 +10,7 @@
 
 <section class="kpi-grid">
   @for (k of kpis; track k.title; let i = $index) {
-    <article class="card kpi-card" [attr.data-variant]="k.variant">
+    <article class="card kpi-card" [attr.data-variant]="k.variant" [attr.data-tone]="k.tone">
       <header class="kpi-head">
         <span class="kpi-title">{{ k.title }}</span>
         <tabler-icon class="info" icon="info-circle" [size]="14" />
@@ -137,6 +137,22 @@
           </svg>
         }
 
+        @case ('metric') {
+          <div class="kc-kpi-head">
+            <span class="kc-kpi-title">{{ k.title }}</span>
+            <span class="kc-kpi-icon">
+              <tabler-icon [icon]="k.icon!" [size]="18" />
+            </span>
+          </div>
+          <div class="kc-kpi-row">
+            <span class="kc-kpi-value">{{ k.value }}</span>
+            <span class="kc-kpi-sub">{{ k.sub }}</span>
+          </div>
+          <div class="kc-kpi-bar">
+            <div class="kc-kpi-bar-fill" [style.width.%]="k.arcPct"></div>
+          </div>
+        }
+
         @case ('uptime') {
           <div class="kpi-row">
             <span class="uptime-value">{{ k.value }}</span>
@@ -232,22 +248,6 @@
     </a>
   </header>
 
-  <div class="prompt-pills-section">
-    @for (t of topThemes; track t.id) {
-      <div class="prompt-pills-row">
-        <span class="pills-theme-label">
-          <span class="pills-theme-dot" [style.background]="t.color"></span>
-          {{ t.name }}
-        </span>
-        <div class="pills-list">
-          @for (p of t.prompts; track p) {
-            <span class="prompt-pill" [style.border-color]="t.color + '55'">{{ p }}</span>
-          }
-        </div>
-      </div>
-    }
-  </div>
-
   <div class="treemap">
     @for (row of treemap; track $index; let rowIdx = $index) {
       <div class="treemap-row" [style.flex]="rowFlex(row)">
@@ -300,6 +300,22 @@
             }
           </a>
         }
+      </div>
+    }
+  </div>
+
+  <div class="prompt-pills-section">
+    @for (t of topThemes; track t.id) {
+      <div class="prompt-pills-row">
+        <span class="pills-theme-label">
+          <span class="pills-theme-dot" [style.background]="t.color"></span>
+          {{ t.name }}
+        </span>
+        <div class="pills-list">
+          @for (p of t.prompts; track p) {
+            <span class="prompt-pill" [style.border-color]="t.color + '55'">{{ p }}</span>
+          }
+        </div>
       </div>
     }
   </div>
