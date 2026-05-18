@@ -129,7 +129,7 @@ export class Assets {
   // Orchestrator on top, 8 children on a single row below
   readonly agentsData: CanvasData = {
     nodes: [
-      { id: 'orch', label: 'Orchestrator', usage: 'high', level: 'root',
+      { id: 'orch', label: 'MultiAgent Synthesis', usage: 'high', level: 'root',
         x: 830, y: 30 },
 
       { id: 'tor',  label: 'TOR Genie',                                    usage: 'high',   level: 'leaf', x: 25,   y: 240 },
