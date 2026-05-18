@@ -28,10 +28,10 @@ export class Feedback {
   readonly negativeDrivers = ['Not factually correct', 'Did not follow instructions', 'Offensive / Unsafe'];
 
   readonly impactedSources = [
-    { name: 'TOR Templates',             pct: 64 },
-    { name: 'Evaluation Reports',        pct: 51 },
-    { name: 'Sector Flagships',          pct: 38 },
-    { name: 'Country Profiles',          pct: 29 },
+    { name: 'OP/BP 10.00 – Investment Project Financing', pct: 64 },
+    { name: 'World Development Report 2024',              pct: 51 },
+    { name: 'MNA Regional Economic Update (Apr 2025)',    pct: 38 },
+    { name: 'IFC Performance Standards (2012)',           pct: 29 },
   ];
 
   readonly formulaTooltipVisible = signal(false);
