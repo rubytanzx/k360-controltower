@@ -17,18 +17,12 @@ interface Kpi {
   arcPct?: number;
 }
 
-interface Agent {
-  id: 'sherlock' | 'torgenie' | 'lessons' | 'synthesis';
-  name: string;
-  pct: number;
-}
-
 interface Topic {
   id: string;
   name: string;
   pct: number;
   count: number;
-  agent: Agent['id'];
+  color: string;
   prompts: string[];
   trending?: boolean;
 }
@@ -51,17 +45,17 @@ export class Dashboard {
       sub: 'overall usage volume',
     },
     {
-      title: 'Estimated time saved',
-      variant: 'target',
-      value: '~1,400 hrs',
-      sub: 'this month · across all agents',
+      title: 'Overall Coverage',
+      variant: 'arc',
+      value: '80%',
+      sub: 'sources ingested',
+      arcPct: 80,
     },
     {
-      title: 'System Uptime',
-      variant: 'uptime',
-      value: '99.94%',
-      sub: 'Availability',
-      delta: '+0.20%',
+      title: 'Staff Adoption',
+      variant: 'target',
+      value: '67%',
+      sub: 'of WBG staff actively using K360',
     },
     {
       title: 'Avg Query Response Time',
@@ -73,13 +67,8 @@ export class Dashboard {
     },
   ];
 
-  // ---- row 2: Agents + Ingested ----
-  readonly agents: Agent[] = [
-    { id: 'sherlock', name: 'Sherlock', pct: 45 },
-    { id: 'torgenie', name: 'TOR Genie', pct: 28 },
-    { id: 'lessons', name: 'Lessons Explorer', pct: 17 },
-    { id: 'synthesis', name: 'MultiAgent Synthesis', pct: 10 },
-  ];
+  // ---- row 2: Agents count + Ingested ----
+  readonly agentsActive = 8;
 
   readonly ingested = {
     value: '2,302',
@@ -87,7 +76,6 @@ export class Dashboard {
   };
 
   // ---- row 3: thematic treemap ----
-  // Topics arranged in 2 rows by visual hierarchy; row height ∝ sum of pcts.
   readonly treemap: Topic[][] = [
     [
       {
@@ -95,7 +83,7 @@ export class Dashboard {
         name: 'Economic Growth & Labor Markets',
         pct: 28,
         count: 79,
-        agent: 'synthesis',
+        color: '#2c8aff',
         prompts: [
           'What are the latest labor market trends in MNA?',
           'Compare GDP growth across EAP middle-income countries',
@@ -107,7 +95,7 @@ export class Dashboard {
         name: 'TOR Generation',
         pct: 17,
         count: 47,
-        agent: 'torgenie',
+        color: '#a855f7',
         prompts: [
           'Draft a TOR for a public expenditure review in Kenya',
           'Generate scope of work for a private sector assessment',
@@ -119,7 +107,7 @@ export class Dashboard {
         name: 'Other',
         pct: 14,
         count: 40,
-        agent: 'synthesis',
+        color: '#64748b',
         prompts: [
           'Ad-hoc cross-cutting queries',
           'Miscellaneous operational questions',
@@ -133,7 +121,7 @@ export class Dashboard {
         name: 'Expertise / People Search',
         pct: 13,
         count: 37,
-        agent: 'sherlock',
+        color: '#f59e0b',
         prompts: [
           'Who are our top experts on climate adaptation?',
           'Find specialists in digital ID systems',
@@ -145,7 +133,7 @@ export class Dashboard {
         name: 'Climate & Infrastructure',
         pct: 11,
         count: 31,
-        agent: 'synthesis',
+        color: '#22d3ee',
         trending: true,
         prompts: [
           'Compare climate finance flows by region',
@@ -158,7 +146,7 @@ export class Dashboard {
         name: 'Lessons Explorer',
         pct: 9,
         count: 26,
-        agent: 'lessons',
+        color: '#14b8a6',
         prompts: [
           'Lessons learned from past PFM reforms',
           'What worked in agriculture interventions in West Africa?',
@@ -170,7 +158,7 @@ export class Dashboard {
         name: 'Housing & Finance',
         pct: 8,
         count: 22,
-        agent: 'sherlock',
+        color: '#ec4899',
         prompts: [
           'Housing finance markets in LAC',
           'Affordable housing policy frameworks',
@@ -180,12 +168,7 @@ export class Dashboard {
     ],
   ];
 
-  readonly agentColor: Record<Agent['id'], string> = {
-    sherlock: '#2c8aff',
-    torgenie: '#a855f7',
-    lessons: '#14b8a6',
-    synthesis: '#f59e0b',
-  };
+  readonly topThemes = this.treemap[0];
 
   readonly hoveredTopic = signal<Topic | null>(null);
 

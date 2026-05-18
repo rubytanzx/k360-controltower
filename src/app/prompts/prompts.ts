@@ -5,7 +5,6 @@ import { FilterBar } from '../shared/filter-bar/filter-bar';
 
 type TopicId = 'eg' | 'tor' | 'exp' | 'cli' | 'les' | 'hf' | 'oth';
 type Trend = 'up' | 'down' | 'stable';
-type AgentId = 'sherlock' | 'torgenie' | 'lessons' | 'synthesis';
 
 interface Topic {
   id: TopicId;
@@ -21,14 +20,9 @@ interface TreemapTopic {
   name: string;
   pct: number;
   count: number;
-  agent: AgentId;
+  color: string;
   prompts: string[];
   trending?: boolean;
-}
-
-interface AgentLegend {
-  id: AgentId;
-  name: string;
 }
 
 interface ActionType {
@@ -59,20 +53,6 @@ export class Prompts {
   readonly uniqueTopics = 7;
 
   // ---- Topic treemap (mirrors the landing-page Thematic Breakdown) ----
-  readonly agents: AgentLegend[] = [
-    { id: 'sherlock', name: 'Sherlock' },
-    { id: 'torgenie', name: 'TOR Genie' },
-    { id: 'lessons',  name: 'Lessons Explorer' },
-    { id: 'synthesis', name: 'MultiAgent Synthesis' },
-  ];
-
-  readonly agentColor: Record<AgentId, string> = {
-    sherlock: '#2c8aff',
-    torgenie: '#a855f7',
-    lessons: '#14b8a6',
-    synthesis: '#f59e0b',
-  };
-
   readonly treemap: TreemapTopic[][] = [
     [
       {
@@ -80,7 +60,7 @@ export class Prompts {
         name: 'Economic Growth & Labor Markets',
         pct: 28,
         count: 79,
-        agent: 'synthesis',
+        color: '#2c8aff',
         prompts: [
           'What are the latest labor market trends in MNA?',
           'Compare GDP growth across EAP middle-income countries',
@@ -92,7 +72,7 @@ export class Prompts {
         name: 'TOR Generation',
         pct: 17,
         count: 47,
-        agent: 'torgenie',
+        color: '#a855f7',
         prompts: [
           'Draft a TOR for a public expenditure review in Kenya',
           'Generate scope of work for a private sector assessment',
@@ -104,7 +84,7 @@ export class Prompts {
         name: 'Other',
         pct: 14,
         count: 40,
-        agent: 'synthesis',
+        color: '#64748b',
         prompts: [
           'Ad-hoc cross-cutting queries',
           'Miscellaneous operational questions',
@@ -118,7 +98,7 @@ export class Prompts {
         name: 'Expertise / People Search',
         pct: 13,
         count: 37,
-        agent: 'sherlock',
+        color: '#f59e0b',
         prompts: [
           'Who are our top experts on climate adaptation?',
           'Find specialists in digital ID systems',
@@ -130,7 +110,7 @@ export class Prompts {
         name: 'Climate & Infrastructure',
         pct: 11,
         count: 31,
-        agent: 'synthesis',
+        color: '#22d3ee',
         trending: true,
         prompts: [
           'Compare climate finance flows by region',
@@ -143,7 +123,7 @@ export class Prompts {
         name: 'Lessons Explorer',
         pct: 9,
         count: 26,
-        agent: 'lessons',
+        color: '#14b8a6',
         prompts: [
           'Lessons learned from past PFM reforms',
           'What worked in agriculture interventions in West Africa?',
@@ -155,7 +135,7 @@ export class Prompts {
         name: 'Housing & Finance',
         pct: 8,
         count: 22,
-        agent: 'sherlock',
+        color: '#ec4899',
         prompts: [
           'Housing finance markets in LAC',
           'Affordable housing policy frameworks',
@@ -164,6 +144,8 @@ export class Prompts {
       },
     ],
   ];
+
+  readonly topThemes = this.treemap[0];
 
   readonly hoveredTopic = signal<TreemapTopic | null>(null);
   readonly rowFlex = (row: TreemapTopic[]) => row.reduce((s, t) => s + t.pct, 0);
@@ -179,8 +161,8 @@ export class Prompts {
   readonly topics: Topic[] = [
     { id: 'eg',  name: 'Economic Growth & Labor Markets', count: 79, pct: 28, trend: 'up',     color: '#2c8aff' },
     { id: 'tor', name: 'TOR Generation',                  count: 47, pct: 17, trend: 'up',     color: '#a855f7' },
-    { id: 'oth', name: 'Other',                           count: 40, pct: 14, trend: 'stable', color: '#f59e0b' },
-    { id: 'exp', name: 'Expertise / People Search',       count: 37, pct: 13, trend: 'stable', color: '#0ea5e9' },
+    { id: 'oth', name: 'Other',                           count: 40, pct: 14, trend: 'stable', color: '#64748b' },
+    { id: 'exp', name: 'Expertise / People Search',       count: 37, pct: 13, trend: 'stable', color: '#f59e0b' },
     { id: 'cli', name: 'Climate & Infrastructure',        count: 31, pct: 11, trend: 'up',     color: '#22d3ee' },
     { id: 'les', name: 'Lessons Explorer',                count: 26, pct:  9, trend: 'stable', color: '#14b8a6' },
     { id: 'hf',  name: 'Housing & Finance',               count: 22, pct:  8, trend: 'stable', color: '#ec4899' },

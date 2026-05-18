@@ -190,33 +190,16 @@
     <header class="lower-head">
       <div class="title-wrap">
         <tabler-icon icon="robot" [size]="18" />
-        <span class="lower-title">Agents</span>
+        <span class="lower-title">Agents Active</span>
       </div>
       <a class="view-link" routerLink="/assets" [queryParams]="{ tab: 'agents' }">
         View <tabler-icon icon="chevron-right" [size]="16" />
       </a>
     </header>
-
-    <div class="agent-bar">
-      @for (a of agents; track a.id) {
-        <div
-          class="agent-seg"
-          [attr.data-agent]="a.id"
-          [style.flex]="a.pct"
-          [title]="a.name + ' · ' + a.pct + '%'"
-        ></div>
-      }
+    <div class="agents-count-body">
+      <span class="agents-count-value">{{ agentsActive }}</span>
+      <span class="agents-count-sub">agents deployed</span>
     </div>
-
-    <ul class="agent-legend">
-      @for (a of agents; track a.id) {
-        <li>
-          <span class="agent-dot" [attr.data-agent]="a.id"></span>
-          <span class="agent-name">{{ a.name }}</span>
-          <span class="agent-pct">{{ a.pct }}%</span>
-        </li>
-      }
-    </ul>
   </article>
 
   <article class="card ingested-card">
@@ -249,12 +232,19 @@
     </a>
   </header>
 
-  <div class="constellation-legend">
-    @for (a of agents; track a.id) {
-      <span class="legend-item">
-        <span class="agent-dot" [attr.data-agent]="a.id"></span>
-        {{ a.name }}
-      </span>
+  <div class="prompt-pills-section">
+    @for (t of topThemes; track t.id) {
+      <div class="prompt-pills-row">
+        <span class="pills-theme-label">
+          <span class="pills-theme-dot" [style.background]="t.color"></span>
+          {{ t.name }}
+        </span>
+        <div class="pills-list">
+          @for (p of t.prompts; track p) {
+            <span class="prompt-pill" [style.border-color]="t.color + '55'">{{ p }}</span>
+          }
+        </div>
+      </div>
     }
   </div>
 
@@ -267,7 +257,7 @@
             [class.is-trending]="t.trending"
             [class.is-hovered]="hoveredTopic()?.id === t.id"
             [style.flex]="t.pct"
-            [style.background]="agentColor[t.agent]"
+            [style.background]="t.color"
             [routerLink]="['/prompts/analysis']"
             [queryParams]="{ topic: t.id }"
             (mouseenter)="hoveredTopic.set(t)"
@@ -294,13 +284,11 @@
             @if (hoveredTopic()?.id === t.id) {
               <div class="topic-tooltip" [attr.data-row]="rowIdx">
                 <div class="tip-head">
-                  <span class="tip-dot" [attr.data-agent]="t.agent"></span>
+                  <span class="tip-dot" [style.background]="t.color"></span>
                   <span class="tip-name">{{ t.name }}</span>
                 </div>
                 <div class="tip-meta">
                   <span>{{ t.count }} prompts</span>
-                  <span class="dot-sep">·</span>
-                  <span>{{ t.pct }}% share</span>
                 </div>
                 <div class="tip-section">Top 3 example prompts</div>
                 <ul class="tip-prompts">

@@ -24,6 +24,46 @@
   color: var(--text-dim);
 }
 
+/* uptime bar */
+.uptime-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 16px;
+  margin: 18px 0 0;
+  border-radius: 8px;
+  background: rgba(74, 222, 128, 0.06);
+  border: 1px solid rgba(74, 222, 128, 0.18);
+  font-size: 12.5px;
+  color: var(--text-dim);
+  width: fit-content;
+}
+
+.uptime-bar-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--success);
+  box-shadow: 0 0 6px var(--success);
+  flex: 0 0 7px;
+}
+
+.uptime-bar-stat {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.uptime-bar-stat strong { color: var(--success); font-weight: 600; }
+
+.uptime-bar-sep { color: var(--text-faint); }
+
+.uptime-bar-delta {
+  color: var(--success);
+  font-size: 11.5px;
+}
+
 /* tabs */
 .tabs {
   display: flex;
