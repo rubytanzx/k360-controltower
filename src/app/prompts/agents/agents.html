@@ -1,0 +1,253 @@
+<header class="page-header">
+  <div class="header-text">
+    <a class="back-link" routerLink="/prompts">
+      <tabler-icon icon="chevron-left" [size]="14" />Back to Prompts
+    </a>
+    <h1 class="title">Agents Analysis</h1>
+    <p class="subtitle">Per-agent engagement, sentiment &amp; subcategory breakdown</p>
+  </div>
+  <button class="bell" aria-label="Notifications">
+    <tabler-icon icon="bell" [size]="26" />
+    <span class="badge">4</span>
+  </button>
+</header>
+
+<nav class="agent-tabs" role="tablist">
+  @for (a of agents; track a.id) {
+    <button
+      class="agent-tab"
+      role="tab"
+      [class.is-active]="active() === a.id"
+      [style.--tab-color]="a.color"
+      (click)="setAgent(a.id)"
+    >
+      <span class="tab-dot" [style.background]="a.color"></span>
+      <span class="tab-name">{{ a.short }}</span>
+      <span class="tab-count">{{ a.count }}</span>
+    </button>
+  }
+</nav>
+
+<section class="kpi-grid">
+  <article class="card kpi-card">
+    <header class="kpi-head">
+      <span class="kpi-title">Total Prompts</span>
+      <span class="kpi-icon">
+        <tabler-icon icon="messages" [size]="18" />
+      </span>
+    </header>
+    <div class="kpi-row">
+      <span class="kpi-value">{{ current().count }}</span>
+    </div>
+    <p class="kpi-sub">via {{ current().short }}</p>
+  </article>
+
+  <article class="card kpi-card feedback-card">
+    <header class="kpi-head">
+      <span class="kpi-title">Feedback</span>
+      <span class="kpi-icon good">
+        <tabler-icon icon="thumb-up" [size]="18" />
+      </span>
+    </header>
+    <div class="feedback-row">
+      <span class="thumb-up">
+        <tabler-icon icon="thumb-up" [size]="14" />
+        {{ current().thumbsUp }}
+      </span>
+      <span class="thumb-down">
+        <tabler-icon icon="thumb-down" [size]="14" />
+        {{ current().thumbsDown }}
+      </span>
+    </div>
+    <div class="feedback-bar">
+      <div class="feedback-bar-up" [style.width.%]="sentimentPct()"></div>
+      <div class="feedback-bar-down" [style.width.%]="100 - sentimentPct()"></div>
+    </div>
+    <p class="kpi-sub">{{ sentimentPct() }}% positive</p>
+  </article>
+
+  <article class="card kpi-card">
+    <header class="kpi-head">
+      <span class="kpi-title">Intent Clarification Rate</span>
+      <span class="kpi-icon warn">
+        <tabler-icon icon="help-circle" [size]="18" />
+      </span>
+    </header>
+    <div class="kpi-row">
+      <span class="kpi-value">{{ clarificationPct() }}%</span>
+    </div>
+    <p class="kpi-sub">queries needing a follow-up dialog</p>
+    <div class="clarif-bar">
+      <div class="clarif-bar-fill" [style.width.%]="clarificationPct()"></div>
+    </div>
+  </article>
+</section>
+
+<section class="card subcat-card">
+  <header class="card-head">
+    <h3 class="card-title">Subcategories</h3>
+    <span class="muted">breakdown of {{ current().count }} prompts via {{ current().short }}</span>
+  </header>
+
+  <table class="subcat-table">
+    <thead>
+      <tr>
+        <th class="col-name">Category</th>
+        <th class="col-prompts">Prompts</th>
+        <th class="col-util">Source Utilisation</th>
+        <th class="col-pos">Positive</th>
+        <th class="col-neg">Negative</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (s of current().subcategories; track s.name) {
+        <tr class="subcat-row" (click)="openDrawer(s)">
+          <td class="col-name">
+            <span class="subcat-name-link">{{ s.name }}</span>
+          </td>
+          <td class="col-prompts">{{ s.prompts }}</td>
+          <td class="col-util">
+            <div class="util-cell">
+              <span class="util-pct">{{ s.sourceUtilisation }}%</span>
+              <div class="util-bar">
+                <div
+                  class="util-bar-fill"
+                  [attr.data-tier]="s.sourceUtilisation >= 75 ? 'good' : s.sourceUtilisation >= 55 ? 'warn' : 'bad'"
+                  [style.width.%]="s.sourceUtilisation"
+                ></div>
+              </div>
+            </div>
+          </td>
+          <td class="col-pos">
+            <span class="pct-pill pos">
+              <tabler-icon icon="thumb-up" [size]="11" />{{ s.positivePct }}%
+            </span>
+          </td>
+          <td class="col-neg">
+            <span class="pct-pill neg">
+              <tabler-icon icon="thumb-down" [size]="11" />{{ s.negativePct }}%
+            </span>
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</section>
+
+<!-- Subcategory drawer -->
+@if (drawerOpen() && drawerSubcat(); as sub) {
+  <div class="drawer-backdrop" (click)="closeDrawer()" (keydown.escape)="closeDrawer()"></div>
+  <aside
+    class="drawer"
+    role="dialog"
+    [class.is-expanded]="drawerExpanded()"
+    [class.is-resizing]="isResizing()"
+    [style.width.px]="drawerExpanded() ? null : drawerWidth()"
+    [attr.aria-label]="sub.name"
+  >
+    <div
+      class="drawer-resizer"
+      (mousedown)="onResizeStart($event)"
+      aria-label="Resize drawer"
+      role="separator"
+    >
+      <span class="resizer-grip"></span>
+    </div>
+    <header class="drawer-head">
+      <h2 class="drawer-title">{{ sub.name }}</h2>
+      <div class="drawer-head-actions">
+        <button type="button" aria-label="Download">
+          <tabler-icon icon="download" [size]="18" />
+        </button>
+        <button
+          type="button"
+          [attr.aria-label]="drawerExpanded() ? 'Collapse' : 'Expand'"
+          (click)="toggleDrawerExpand()"
+        >
+          <tabler-icon
+            [icon]="drawerExpanded() ? 'arrows-move' : 'maximize'"
+            [size]="18"
+          />
+        </button>
+        <button type="button" aria-label="Close" (click)="closeDrawer()">
+          <tabler-icon icon="x" [size]="18" />
+        </button>
+      </div>
+    </header>
+
+    <nav class="drawer-tabs">
+      <button type="button" [class.is-active]="drawerTab() === 'prompts'" (click)="setDrawerTab('prompts')">Prompts List</button>
+      <button type="button" [class.is-active]="drawerTab() === 'chat'" (click)="setDrawerTab('chat')">Chat</button>
+    </nav>
+
+    @if (drawerTab() === 'prompts') {
+      <section class="ai-summary">
+        <div class="ai-summary-inner">
+          <header class="ai-summary-head">
+            <tabler-icon icon="sparkles" [size]="14" />
+            <span>AI Summary</span>
+          </header>
+          <p>{{ aiSummary() }}</p>
+        </div>
+      </section>
+
+      <div class="drawer-table-wrap">
+        <table class="drawer-table">
+          <thead>
+            <tr>
+              <th class="col-query">User Query</th>
+              <th class="col-num">No. of Queries</th>
+              <th class="col-feedback">Feedback</th>
+              <th class="col-comment">Feedback Comments</th>
+              <th class="col-friction">
+                <span class="friction-th">
+                  <tabler-icon icon="sparkles" [size]="12" />Friction Type
+                </span>
+              </th>
+              <th class="col-actions">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (p of mockPrompts; track p.query) {
+              <tr>
+                <td class="col-query"><span class="query-text">{{ p.query }}</span></td>
+                <td class="col-num">{{ p.numQueries }}</td>
+                <td class="col-feedback">
+                  <span class="thumb-up-mini">
+                    <tabler-icon icon="thumb-up" [size]="13" />{{ p.feedbackUp }}
+                  </span>
+                  <span class="thumb-down-mini">
+                    <tabler-icon icon="thumb-down" [size]="13" />{{ p.feedbackDown }}
+                  </span>
+                </td>
+                <td class="col-comment"><span class="comment-text">{{ p.feedbackComment }}</span></td>
+                <td class="col-friction">
+                  @if (p.frictionType) {
+                    <span class="friction-pill" [attr.data-friction]="p.frictionType">
+                      <span class="friction-dot"></span>{{ frictionLabel(p.frictionType) }}
+                    </span>
+                  }
+                </td>
+                <td class="col-actions">
+                  <a class="remediate-link">Remediate</a>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    } @else {
+      <div class="drawer-chat-placeholder">
+        <tabler-icon icon="message-circle-2" [size]="32" />
+        <p>Chat with these prompts — coming soon.</p>
+      </div>
+    }
+
+    <footer class="drawer-foot">
+      <button class="generate-btn" type="button">
+        <tabler-icon icon="file-download" [size]="18" />
+        Generate Report
+      </button>
+    </footer>
+  </aside>
+}

@@ -283,7 +283,11 @@
             </span>
           }
 
-          <a class="node-review">
+          <a
+            class="node-review"
+            [routerLink]="n.level !== 'root' ? ['/prompts/agents'] : ['/prompts']"
+            [queryParams]="n.level !== 'root' ? { agent: n.id } : {}"
+          >
             Review <tabler-icon icon="chevron-right" [size]="14" />
           </a>
         </article>

@@ -1,5 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TablerIconComponent } from '@tabler/icons-angular';
 
 type Tab = 'agents' | 'collections';
@@ -105,7 +105,7 @@ function curve(x1: number, y1: number, x2: number, y2: number): string {
 
 @Component({
   selector: 'app-assets',
-  imports: [TablerIconComponent],
+  imports: [TablerIconComponent, RouterLink],
   templateUrl: './assets.html',
   styleUrl: './assets.css',
 })

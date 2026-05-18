@@ -199,7 +199,7 @@ app-filter-bar.filter-bar {
   box-shadow: 0 0 6px var(--accent);
 }
 
-/* ----- Row 2: Topic Distribution (treemap, full-width) ----- */
+/* ----- Row 2: Topic Distribution (full width) ----- */
 .row-2-single {
   display: block;
   margin-bottom: 18px;
@@ -636,6 +636,7 @@ app-filter-bar.filter-bar {
 /* responsive */
 @media (max-width: 1180px) {
   .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .row-2 { grid-template-columns: 1fr; }
   .row-4 { grid-template-columns: 1fr; }
   .distribution-body { grid-template-columns: 1fr; }
 }

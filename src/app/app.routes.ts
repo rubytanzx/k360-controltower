@@ -22,6 +22,11 @@ export const routes: Routes = [
       import('./prompts/analysis/analysis').then((m) => m.Analysis),
   },
   {
+    path: 'prompts/agents',
+    loadComponent: () =>
+      import('./prompts/agents/agents').then((m) => m.AgentsAnalysis),
+  },
+  {
     path: 'users',
     loadComponent: () => import('./users/users').then((m) => m.Users),
   },
