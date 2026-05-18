@@ -41,6 +41,7 @@ interface CollectionRecord {
   type: string;
   status: CollectionStatus;
   coverage: number;
+  sourceUtilisation: number;
   lastSynced: string;
   freshness: Freshness;
   demand: DemandRank;
@@ -309,12 +310,12 @@ export class Assets {
       pct: 80,
     },
     {
-      title: 'Added This Month',
-      value: '+2',
-      sub: 'new collections',
-      icon: 'plus',
+      title: 'Cross-Unit Access Rate',
+      value: '—',
+      sub: 'planned · cross-silo knowledge flow',
+      icon: 'arrows-shuffle',
       tone: 'cyan',
-      pct: 60,
+      pct: 0,
     },
     {
       title: 'Freshness Alert',
@@ -327,16 +328,16 @@ export class Assets {
   ];
 
   readonly collectionsList: CollectionRecord[] = [
-    { name: 'WBG Library',           icon: 'library',    type: 'Library',    status: 'integrated',  coverage: 100, lastSynced: '2d ago',  freshness: 'current', demand: 'high' },
-    { name: 'Intranet',              icon: 'building',   type: 'Intranet',   status: 'integrated',  coverage: 100, lastSynced: '1d ago',  freshness: 'current', demand: 'high' },
-    { name: 'Data360',               icon: 'chart-bar',  type: 'Data',       status: 'integrated',  coverage: 100, lastSynced: '3d ago',  freshness: 'current', demand: 'medium' },
-    { name: 'Sector Flagships',      icon: 'flag',       type: 'Sector',     status: 'in-progress', coverage: 80,  lastSynced: '5d ago',  freshness: 'current', demand: 'high' },
-    { name: 'Country Profiles',      icon: 'map',        type: 'Country',    status: 'in-progress', coverage: 65,  lastSynced: '8d ago',  freshness: 'aging',   demand: 'high' },
-    { name: 'TOR Templates',         icon: 'file-text',  type: 'TOR',        status: 'in-progress', coverage: 40,  lastSynced: '12d ago', freshness: 'aging',   demand: 'very-high' },
-    { name: 'Evaluation Reports',    icon: 'report',     type: 'Evaluation', status: 'pending',     coverage: 25,  lastSynced: '45d ago', freshness: 'stale',   demand: 'rising' },
-    { name: 'IFC Project Docs',      icon: 'briefcase',  type: 'Library',    status: 'pending',     coverage: 10,  lastSynced: '—',       freshness: 'unsynced', demand: 'medium' },
-    { name: 'Procurement Library',   icon: 'package',    type: 'Library',    status: 'pending',     coverage: 0,   lastSynced: '—',       freshness: 'unsynced', demand: 'low' },
-    { name: 'Spotlight Collections', icon: 'star',       type: 'Spotlight',  status: 'integrated',  coverage: 100, lastSynced: '1d ago',  freshness: 'current', demand: 'medium' },
+    { name: 'WBG Library',           icon: 'library',    type: 'Library',    status: 'integrated',  coverage: 92, sourceUtilisation: 78, lastSynced: '2d ago',  freshness: 'current',  demand: 'high' },
+    { name: 'Intranet',              icon: 'building',   type: 'Intranet',   status: 'integrated',  coverage: 88, sourceUtilisation: 82, lastSynced: '1d ago',  freshness: 'current',  demand: 'high' },
+    { name: 'Data360',               icon: 'chart-bar',  type: 'Data',       status: 'integrated',  coverage: 95, sourceUtilisation: 74, lastSynced: '3d ago',  freshness: 'current',  demand: 'medium' },
+    { name: 'Sector Flagships',      icon: 'flag',       type: 'Sector',     status: 'in-progress', coverage: 80, sourceUtilisation: 68, lastSynced: '5d ago',  freshness: 'current',  demand: 'high' },
+    { name: 'Country Profiles',      icon: 'map',        type: 'Country',    status: 'in-progress', coverage: 65, sourceUtilisation: 55, lastSynced: '8d ago',  freshness: 'aging',    demand: 'high' },
+    { name: 'TOR Templates',         icon: 'file-text',  type: 'TOR',        status: 'in-progress', coverage: 40, sourceUtilisation: 71, lastSynced: '12d ago', freshness: 'aging',    demand: 'very-high' },
+    { name: 'Evaluation Reports',    icon: 'report',     type: 'Evaluation', status: 'pending',     coverage: 25, sourceUtilisation: 42, lastSynced: '45d ago', freshness: 'stale',    demand: 'rising' },
+    { name: 'IFC Project Docs',      icon: 'briefcase',  type: 'Library',    status: 'pending',     coverage: 10, sourceUtilisation: 30, lastSynced: '—',       freshness: 'unsynced', demand: 'medium' },
+    { name: 'Procurement Library',   icon: 'package',    type: 'Library',    status: 'pending',     coverage: 0,  sourceUtilisation: 0,  lastSynced: '—',       freshness: 'unsynced', demand: 'low' },
+    { name: 'Spotlight Collections', icon: 'star',       type: 'Spotlight',  status: 'integrated',  coverage: 85, sourceUtilisation: 65, lastSynced: '1d ago',  freshness: 'current',  demand: 'medium' },
   ];
 
   readonly collectionsTotal = 42;
