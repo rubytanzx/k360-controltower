@@ -141,35 +141,108 @@
     <header class="card-head">
       <div>
         <h3 class="card-title">Behavioral Segmentation Matrix</h3>
-        <p class="card-sub">User distribution based on conversation volume vs. prompt intensity</p>
+        <p class="card-sub">Conversation volume vs. prompt intensity · click a segment to learn more</p>
       </div>
-      <button class="more-btn" aria-label="More">
-        <tabler-icon icon="dots-vertical" [size]="18" />
-      </button>
-    </header>
-
-    <div class="matrix-wrap">
-      <div class="y-label">NUMBER OF PROMPTS (Y)</div>
-      <div class="matrix-grid">
-        @for (s of segments; track s.id) {
+      <div class="period-toggle">
+        @for (p of periods; track p) {
           <button
             type="button"
-            class="matrix-cell"
-            [attr.data-seg]="s.id"
-            [class.is-selected]="selectedSegment() === s.id"
-            (click)="selectSegment(s.id)"
-          >
-            <span class="seg-pill">
-              <span class="seg-dot"></span>{{ s.name }}
-            </span>
-            <div class="seg-bottom">
-              <span class="seg-pct">{{ s.pct }}%</span>
-              <span class="seg-users">{{ s.users }}</span>
-            </div>
-          </button>
+            [class.is-active]="activePeriod() === p"
+            (click)="activePeriod.set(p)"
+          >{{ p }}</button>
         }
       </div>
-      <div class="x-label">NUMBER OF CONVERSATIONS (X)</div>
+    </header>
+
+    <div class="scatter-wrap">
+      <div class="scatter-ylabel">PROMPTS / SESSION</div>
+      <div class="scatter-plot-area">
+        <svg
+          [attr.viewBox]="'0 0 ' + svgW + ' ' + svgH"
+          class="scatter-svg"
+          preserveAspectRatio="xMidYMid meet"
+        >
+          <!-- Quadrant backgrounds -->
+          <rect x="52" y="16" width="176" height="112" class="quad-bg" data-seg="focused" />
+          <rect x="228" y="16" width="176" height="112" class="quad-bg" data-seg="power" />
+          <rect x="52" y="128" width="176" height="112" class="quad-bg" data-seg="onetime" />
+          <rect x="228" y="128" width="176" height="112" class="quad-bg" data-seg="low" />
+
+          <!-- Minor grid lines -->
+          @for (t of [5, 15]; track t) {
+            <line [attr.x1]="toSvgX(t)" y1="16" [attr.x2]="toSvgX(t)" y2="240" class="grid-line" />
+            <line x1="52" [attr.y1]="toSvgY(t)" x2="404" [attr.y2]="toSvgY(t)" class="grid-line" />
+          }
+
+          <!-- Quadrant dividers -->
+          <line x1="228" y1="16" x2="228" y2="240" class="quad-line" />
+          <line x1="52" y1="128" x2="404" y2="128" class="quad-line" />
+
+          <!-- Y-axis ticks -->
+          @for (t of [0, 5, 10, 15, 20]; track t) {
+            <text [attr.x]="44" [attr.y]="toSvgY(t) + 4" class="axis-tick" text-anchor="end">{{ t }}</text>
+          }
+
+          <!-- X-axis ticks -->
+          @for (t of [0, 5, 10, 15, 20]; track t) {
+            <text [attr.x]="toSvgX(t)" y="258" class="axis-tick" text-anchor="middle">{{ t }}</text>
+          }
+
+          <!-- Quadrant labels -->
+          <text x="58"  y="30"  class="quad-label" data-seg="focused">Focused</text>
+          <text x="398" y="30"  class="quad-label" text-anchor="end" data-seg="power">Power</text>
+          <text x="58"  y="143" class="quad-label" data-seg="onetime">One-Time</text>
+          <text x="398" y="143" class="quad-label" text-anchor="end" data-seg="low">Low Eng.</text>
+
+          <!-- Trail lines (rendered behind dots) -->
+          @for (t of trailLines(); track t.id) {
+            <line
+              [attr.x1]="t.x1" [attr.y1]="t.y1"
+              [attr.x2]="t.x2" [attr.y2]="t.y2"
+              class="trail-line"
+            />
+            <circle [attr.cx]="t.ghostCx" [attr.cy]="t.ghostCy" r="3" class="ghost-dot" />
+          }
+
+          <!-- User dots -->
+          @for (dot of currentDots(); track dot.id) {
+            <circle
+              [attr.cx]="dot.cx"
+              [attr.cy]="dot.cy"
+              r="5.5"
+              [attr.fill]="dot.color"
+              class="scatter-dot"
+              [class.is-selected]="selectedSegment() === dot.seg"
+              (click)="selectSegment(dot.seg)"
+              (mouseenter)="hoveredDot.set(dot.id)"
+              (mouseleave)="hoveredDot.set(null)"
+            />
+          }
+
+          <!-- Hover tooltip -->
+          @if (hoveredDotData(); as h) {
+            <g [attr.transform]="'translate(' + h.cx + ',' + (h.cy - 14) + ')'">
+              <rect x="-56" y="-22" width="112" height="20" rx="4" fill="rgba(5,15,35,0.92)" stroke="rgba(255,255,255,0.1)" stroke-width="1" />
+              <text y="-8" text-anchor="middle" class="dot-tooltip-text">{{ segLabel(h.seg) }}</text>
+            </g>
+          }
+        </svg>
+        <div class="scatter-xlabel">CONVERSATIONS</div>
+      </div>
+    </div>
+
+    <div class="scatter-legend">
+      @for (s of segments; track s.id) {
+        <button
+          type="button"
+          class="legend-item"
+          [class.is-active]="selectedSegment() === s.id"
+          (click)="selectSegment(s.id)"
+        >
+          <span class="legend-dot" [style.background]="segColor(s.id)"></span>
+          {{ s.name }}
+        </button>
+      }
     </div>
   </article>
 
