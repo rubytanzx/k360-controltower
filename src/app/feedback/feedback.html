@@ -9,7 +9,7 @@
 <app-filter-bar class="filter-bar" />
 
 <!-- KPI row -->
-<h2 class="section-label">Feedback Quality</h2>
+<h2 class="section-label">Staff Feedback Quality</h2>
 <section class="kpi-grid">
   @for (k of kpis; track k.title) {
     <article class="card kpi-card">
@@ -38,13 +38,13 @@
       </span>
       <h3 class="callout-title">Biggest Negative Spike</h3>
     </header>
-    <p class="callout-body">Significant drop in satisfaction detected in:</p>
+    <p class="callout-body">Significant drop in staff satisfaction detected in:</p>
     <div class="callout-tag">
-      <span class="tag-label">Category</span>
-      <span class="tag-value">Policies, Procedures &amp; Guidelines</span>
+      <span class="tag-label">Topic</span>
+      <span class="tag-value">Procurement &amp; Operational Policies</span>
     </div>
     <a class="callout-link">
-      View all 142 affected Prompts <tabler-icon icon="chevron-right" [size]="14" />
+      View all 142 affected prompts <tabler-icon icon="chevron-right" [size]="14" />
     </a>
   </article>
 
@@ -55,7 +55,7 @@
       </span>
       <h3 class="callout-title">Top Negative Drivers</h3>
     </header>
-    <p class="callout-body">Users are flagging these issues most frequently:</p>
+    <p class="callout-body">Staff are flagging these issues most frequently:</p>
     <div class="driver-chips">
       @for (d of negativeDrivers; track d) {
         <span class="driver-chip">{{ d }}</span>
@@ -71,9 +71,9 @@
       <span class="callout-icon">
         <tabler-icon icon="target" [size]="20" />
       </span>
-      <h3 class="callout-title">Most Impacted Assets</h3>
+      <h3 class="callout-title">Most Impacted Collections</h3>
     </header>
-    <p class="callout-body">Collections receiving most negative feedback:</p>
+    <p class="callout-body">Knowledge collections receiving most negative feedback:</p>
     <ul class="asset-list">
       @for (a of impactedAssets; track a.name) {
         <li class="asset-row">
@@ -92,7 +92,7 @@
       }
     </ul>
     <a class="callout-link">
-      Inspect asset quality <tabler-icon icon="chevron-right" [size]="14" />
+      Inspect collection quality <tabler-icon icon="chevron-right" [size]="14" />
     </a>
   </article>
 </section>

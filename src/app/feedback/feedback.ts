@@ -17,19 +17,19 @@ interface FeedbackKpi {
 })
 export class Feedback {
   readonly kpis: FeedbackKpi[] = [
-    { title: 'Unique Users with Feedback', value: '575', delta: '+8.4%' },
-    { title: 'Total Feedback', value: '18,450', delta: '+24%' },
+    { title: 'Unique Staff with Feedback', value: '575', delta: '+8.4%' },
+    { title: 'Total Feedback Events', value: '18,450', delta: '+24%' },
     { title: 'Negative Rate', value: '4.2%', delta: '+3.5%', deltaTone: 'bad' },
     { title: 'Search Success Rate', value: '80%', delta: '+2pp' },
   ];
 
-  readonly searchSuccessSub = '% of sessions with at least one result accessed';
+  readonly searchSuccessSub = '% of sessions where staff accessed at least one retrieved result';
 
-  readonly negativeDrivers = ['Hallucination', 'Slow Response', 'Inaccurate Source'];
+  readonly negativeDrivers = ['Outdated Policy Guidance', 'Missing Source Citations', 'Incorrect Procurement Rules'];
 
   readonly impactedAssets = [
-    { name: 'Staff Instructions Library', pct: 58 },
-    { name: 'Publications', pct: 42 },
+    { name: 'Operational Policies Library', pct: 58 },
+    { name: 'Open Knowledge Repository (OKR)', pct: 42 },
   ];
 
   readonly trendCadence = signal<'monthly' | 'weekly'>('monthly');
