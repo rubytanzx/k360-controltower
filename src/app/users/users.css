@@ -381,6 +381,7 @@ app-filter-bar.filter-bar {
 
 .scatter-dot:hover  { opacity: 1; stroke: rgba(255, 255, 255, 0.35); }
 .scatter-dot.is-selected { opacity: 1; stroke: white; stroke-width: 2; }
+.scatter-dot.is-dim      { opacity: 0.15; }
 
 .trail-line {
   stroke: rgba(255, 255, 255, 0.15);
@@ -390,9 +391,15 @@ app-filter-bar.filter-bar {
 
 .ghost-dot { fill: rgba(255, 255, 255, 0.2); }
 
-.dot-tooltip-text {
+.dot-tooltip-title {
   fill: white;
-  font-size: 10px;
+  font-size: 10.5px;
+  font-weight: 600;
+}
+
+.dot-tooltip-seg {
+  font-size: 9.5px;
+  opacity: 0.8;
 }
 
 .scatter-xlabel {
@@ -435,6 +442,110 @@ app-filter-bar.filter-bar {
   height: 8px;
   border-radius: 50%;
   flex: 0 0 8px;
+}
+
+/* ---- Persona panel ---- */
+.persona-head {
+  margin-bottom: 14px;
+}
+
+.persona-name-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 5px;
+}
+
+.persona-name {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.3;
+}
+
+.persona-unit {
+  margin: 0;
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.persona-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 1px;
+  background: var(--border-soft);
+  border: 1px solid var(--border-soft);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 14px;
+}
+
+.persona-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 10px 12px;
+  background: var(--bg-elevated);
+}
+
+.ps-value {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1;
+}
+
+.ps-agent {
+  font-size: 11px;
+  line-height: 1.3;
+}
+
+.ps-label {
+  font-size: 10px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.persona-section {
+  margin-bottom: 12px;
+}
+
+.persona-section-title {
+  margin: 0 0 6px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  color: var(--text-faint);
+}
+
+.persona-workflows {
+  margin: 0;
+  padding: 0 0 0 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.persona-workflows li {
+  font-size: 12.5px;
+  color: var(--text);
+  line-height: 1.4;
+}
+
+.persona-query-text {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-dim);
+  font-style: italic;
+  line-height: 1.55;
+  padding: 8px 12px;
+  border-left: 2px solid var(--border);
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 0 6px 6px 0;
 }
 
 /* seg-dot used in summary-seg-pill */

@@ -212,8 +212,9 @@
               r="5.5"
               [attr.fill]="dot.color"
               class="scatter-dot"
-              [class.is-selected]="selectedSegment() === dot.seg"
-              (click)="selectSegment(dot.seg)"
+              [class.is-selected]="selectedDot() === dot.id"
+              [class.is-dim]="selectedDot() !== null && selectedDot() !== dot.id"
+              (click)="selectDot(dot.id)"
               (mouseenter)="hoveredDot.set(dot.id)"
               (mouseleave)="hoveredDot.set(null)"
             />
@@ -221,9 +222,10 @@
 
           <!-- Hover tooltip -->
           @if (hoveredDotData(); as h) {
-            <g [attr.transform]="'translate(' + h.cx + ',' + (h.cy - 14) + ')'">
-              <rect x="-56" y="-22" width="112" height="20" rx="4" fill="rgba(5,15,35,0.92)" stroke="rgba(255,255,255,0.1)" stroke-width="1" />
-              <text y="-8" text-anchor="middle" class="dot-tooltip-text">{{ segLabel(h.seg) }}</text>
+            <g [attr.transform]="'translate(' + h.cx + ',' + (h.cy - 20) + ')'">
+              <rect x="-80" y="-38" width="160" height="34" rx="5" fill="rgba(5,15,35,0.95)" stroke="rgba(255,255,255,0.1)" stroke-width="1" />
+              <text y="-21" text-anchor="middle" class="dot-tooltip-title">{{ h.personaTitle }}</text>
+              <text y="-7" text-anchor="middle" class="dot-tooltip-seg" [attr.fill]="h.color">{{ segLabel(h.seg) }}</text>
             </g>
           }
         </svg>
@@ -246,8 +248,61 @@
     </div>
   </article>
 
-  <article class="card summary-card" [class.is-empty]="!currentSegment()">
-    @if (currentSegment(); as seg) {
+  <article class="card summary-card" [class.is-empty]="!currentPersona() && !currentSegment()">
+    @if (currentPersona(); as p) {
+      <!-- Persona view: shown when a dot is clicked -->
+      <header class="persona-head">
+        <div class="persona-name-row">
+          <h3 class="persona-name">{{ p.title }}</h3>
+          @if (selectedDotSegment(); as seg) {
+            <span class="summary-seg-pill" [attr.data-seg]="seg">
+              <span class="seg-dot" [style.background]="segColor(seg)"></span>
+              {{ segLabel(seg) }}
+            </span>
+          }
+        </div>
+        <p class="persona-unit">{{ p.unit }}</p>
+      </header>
+
+      <div class="persona-stats">
+        <div class="persona-stat">
+          <span class="ps-value">{{ p.avgConv }}</span>
+          <span class="ps-label">avg conversations</span>
+        </div>
+        <div class="persona-stat">
+          <span class="ps-value">{{ p.avgPrompts }}</span>
+          <span class="ps-label">prompts / session</span>
+        </div>
+        <div class="persona-stat">
+          <span class="ps-value ps-agent">{{ p.primaryAgent }}</span>
+          <span class="ps-label">primary agent</span>
+        </div>
+      </div>
+
+      <section class="persona-section">
+        <h4 class="persona-section-title">Key Workflows</h4>
+        <ul class="persona-workflows">
+          @for (w of p.workflows; track w) {
+            <li>{{ w }}</li>
+          }
+        </ul>
+      </section>
+
+      <section class="persona-section">
+        <h4 class="persona-section-title">Example Query</h4>
+        <p class="persona-query-text">&ldquo;{{ p.exampleQuery }}&rdquo;</p>
+      </section>
+
+      <section class="summary-ai">
+        <header class="summary-ai-head">
+          <tabler-icon icon="sparkles" [size]="14" />
+          <span>AI Insight</span>
+        </header>
+        <p class="summary-ai-text">{{ p.insight }}</p>
+      </section>
+
+    } @else if (currentSegment(); as seg) {
+      <!-- Segment view: shown when a legend item is clicked -->
       <header class="summary-head">
         <span class="summary-seg-pill" [attr.data-seg]="seg.id">
           <span class="seg-dot"></span>{{ seg.name }}
@@ -257,7 +312,6 @@
           <span class="summary-users">{{ seg.users }}</span>
         </div>
       </header>
-
       <section class="summary-ai">
         <header class="summary-ai-head">
           <tabler-icon icon="sparkles" [size]="14" />
@@ -265,15 +319,15 @@
         </header>
         <p class="summary-ai-text">{{ currentSummary() }}</p>
       </section>
+
     } @else {
       <div class="summary-empty">
         <span class="summary-empty-icon">
           <tabler-icon icon="sparkles" [size]="24" />
         </span>
-        <p class="summary-empty-title">Select a user type to know more</p>
+        <p class="summary-empty-title">Select a user or segment</p>
         <p class="summary-empty-sub">
-          Tap any quadrant in the matrix to see behavioral patterns, signals,
-          and growth opportunities for that cohort.
+          Click a dot to explore a specific WBG persona, or tap a segment in the legend to see behavioural patterns and growth opportunities.
         </p>
       </div>
     }
