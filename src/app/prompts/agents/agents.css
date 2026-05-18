@@ -604,6 +604,33 @@
   white-space: nowrap;
 }
 
+.query-agents {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 5px;
+}
+
+.query-agent-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 7px 2px 5px;
+  border-radius: 999px;
+  font-size: 10.5px;
+  color: var(--text-dim);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-soft);
+  white-space: nowrap;
+}
+
+.qac-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex: 0 0 6px;
+}
+
 .friction-th { display: inline-flex; align-items: center; gap: 4px; }
 .friction-th tabler-icon { color: var(--accent); }
 

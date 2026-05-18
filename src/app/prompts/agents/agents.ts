@@ -26,6 +26,7 @@ interface PromptRow {
   feedbackDown: number;
   feedbackComment: string;
   frictionType?: FrictionType;
+  relatedAgents: AgentId[];
 }
 
 interface AgentSummary {
@@ -223,38 +224,49 @@ export class AgentsAnalysis {
       query: 'What are the key trends and challenges in this area over the past quarter?',
       numQueries: 14, feedbackUp: 2, feedbackDown: 12,
       feedbackComment: 'Response was high-level but missed the most recent reports…',
+      relatedAgents: ['sher', 'less'],
     },
     {
       query: 'Outline the approval process for project financing under USD 5 million.',
       numQueries: 8, feedbackUp: 0, feedbackDown: 8,
       feedbackComment: 'Project financing approval steps were incorrect for IDA…',
       frictionType: 'incorrect-content',
+      relatedAgents: ['sher', 'isr'],
     },
     {
       query: 'What compliance controls apply to direct contracting under emergency operations?',
       numQueries: 7, feedbackUp: 1, feedbackDown: 6,
       feedbackComment: 'The Bank procurement controls only listed three of seven…',
       frictionType: 'missing-depth',
+      relatedAgents: ['sher', 'grum'],
     },
     {
       query: 'What compliance controls apply to sole-source consultancy contracts?',
       numQueries: 5, feedbackUp: 1, feedbackDown: 4,
       feedbackComment: 'Direct contracting must cite OPCS guidance — source missing.',
       frictionType: 'source-gap',
+      relatedAgents: ['sher', 'tor'],
     },
     {
       query: 'Summarise financial delegation limits across operational departments.',
       numQueries: 3, feedbackUp: 1, feedbackDown: 2,
       feedbackComment: 'Financial delegation limits should be a table, not prose.',
       frictionType: 'format-mismatch',
+      relatedAgents: ['sher', 'sspa'],
     },
     {
       query: 'Compare administrative instructions for HR vs Finance.',
       numQueries: 2, feedbackUp: 0, feedbackDown: 2,
       feedbackComment: 'Administrative instruction routing went to wrong domain agent.',
       frictionType: 'routing-issue',
+      relatedAgents: ['sher', 'lit'],
     },
   ];
+
+  agentChip(id: AgentId): { color: string; short: string } {
+    const a = this.agents.find((x) => x.id === id);
+    return a ? { color: a.color, short: a.short } : { color: '#888', short: id };
+  }
 
   frictionLabel(t: FrictionType): string {
     switch (t) {

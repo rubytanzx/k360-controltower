@@ -210,7 +210,17 @@
           <tbody>
             @for (p of mockPrompts; track p.query) {
               <tr>
-                <td class="col-query"><span class="query-text">{{ p.query }}</span></td>
+                <td class="col-query">
+                  <span class="query-text">{{ p.query }}</span>
+                  <div class="query-agents">
+                    @for (aid of p.relatedAgents; track aid) {
+                      <span class="query-agent-chip">
+                        <span class="qac-dot" [style.background]="agentChip(aid).color"></span>
+                        {{ agentChip(aid).short }}
+                      </span>
+                    }
+                  </div>
+                </td>
                 <td class="col-num">{{ p.numQueries }}</td>
                 <td class="col-feedback">
                   <span class="thumb-up-mini">
