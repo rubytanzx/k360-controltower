@@ -25,7 +25,7 @@ export class Feedback {
 
   readonly searchSuccessSub = '% of sessions where staff accessed at least one retrieved result';
 
-  readonly negativeDrivers = ['Outdated Policy Guidance', 'Missing Source Citations', 'Incorrect Procurement Rules'];
+  readonly negativeDrivers = ['Not factually correct', 'Did not follow instructions', 'Offensive / Unsafe'];
 
   readonly impactedAssets = [
     { name: 'Operational Policies Library', pct: 58 },
