@@ -251,6 +251,14 @@
   <article class="card summary-card" [class.is-empty]="!currentPersona() && !currentSegment()">
     @if (currentPersona(); as p) {
       <!-- Persona view: shown when a dot is clicked -->
+      <section class="summary-ai">
+        <header class="summary-ai-head">
+          <tabler-icon icon="sparkles" [size]="14" />
+          <span>AI Insight</span>
+        </header>
+        <p class="summary-ai-text">{{ p.insight }}</p>
+      </section>
+
       <header class="persona-head">
         <div class="persona-name-row">
           <h3 class="persona-name">{{ p.title }}</h3>
@@ -291,14 +299,6 @@
       <section class="persona-section">
         <h4 class="persona-section-title">Example Query</h4>
         <p class="persona-query-text">&ldquo;{{ p.exampleQuery }}&rdquo;</p>
-      </section>
-
-      <section class="summary-ai">
-        <header class="summary-ai-head">
-          <tabler-icon icon="sparkles" [size]="14" />
-          <span>AI Insight</span>
-        </header>
-        <p class="summary-ai-text">{{ p.insight }}</p>
       </section>
 
     } @else if (currentSegment(); as seg) {
