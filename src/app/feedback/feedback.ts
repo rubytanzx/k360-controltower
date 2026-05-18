@@ -27,10 +27,14 @@ export class Feedback {
 
   readonly negativeDrivers = ['Not factually correct', 'Did not follow instructions', 'Offensive / Unsafe'];
 
-  readonly impactedAssets = [
-    { name: 'Operational Policies Library', pct: 58 },
-    { name: 'Open Knowledge Repository (OKR)', pct: 42 },
+  readonly impactedSources = [
+    { name: 'TOR Templates',             pct: 64 },
+    { name: 'Evaluation Reports',        pct: 51 },
+    { name: 'Sector Flagships',          pct: 38 },
+    { name: 'Country Profiles',          pct: 29 },
   ];
+
+  readonly formulaTooltipVisible = signal(false);
 
   readonly trendCadence = signal<'monthly' | 'weekly'>('monthly');
 

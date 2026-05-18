@@ -71,15 +71,47 @@
       <span class="callout-icon">
         <tabler-icon icon="target" [size]="20" />
       </span>
-      <h3 class="callout-title">Most Impacted Collections</h3>
+      <h3 class="callout-title">
+        Most Impacted Cited Sources
+        <span
+          class="formula-info"
+          (mouseenter)="formulaTooltipVisible.set(true)"
+          (mouseleave)="formulaTooltipVisible.set(false)"
+        >
+          <tabler-icon icon="info-circle" [size]="13" />
+          @if (formulaTooltipVisible()) {
+            <div class="formula-tooltip">
+              <p class="ft-label">Reliability Score</p>
+              <div class="ft-formula">
+                <div class="ft-fraction">
+                  <span class="ft-num">γP + αU</span>
+                  <span class="ft-bar"></span>
+                  <span class="ft-den">γP + βN + λ + αU</span>
+                </div>
+              </div>
+              <ul class="ft-vars">
+                <li><strong>R</strong> — Reliability Score (0 to 1)</li>
+                <li><strong>P</strong> — positive feedback count</li>
+                <li><strong>N</strong> — negative feedback count</li>
+                <li><strong>U</strong> — citation frequency</li>
+                <li><strong>α</strong> = 0.18 (citation weight)</li>
+                <li><strong>β</strong> = 5 (penalty factor)</li>
+                <li><strong>γ</strong> = 3 (feedback weight)</li>
+                <li><strong>λ</strong> = 5 (smoothing factor)</li>
+              </ul>
+              <p class="ft-note">Sources scoring below 0.5 flagged for immediate review.</p>
+            </div>
+          }
+        </span>
+      </h3>
     </header>
-    <p class="callout-body">Knowledge collections receiving most negative feedback:</p>
+    <p class="callout-body">Cited sources with significant negative feedback by reliability score:</p>
     <ul class="asset-list">
-      @for (a of impactedAssets; track a.name) {
+      @for (a of impactedSources; track a.name) {
         <li class="asset-row">
           <div class="asset-line">
             <span class="asset-name">
-              <tabler-icon icon="database" [size]="14" />{{ a.name }}
+              <tabler-icon icon="file-text" [size]="14" />{{ a.name }}
             </span>
             <span class="asset-pct">
               <tabler-icon icon="thumb-down" [size]="12" />{{ a.pct }}%
@@ -92,7 +124,7 @@
       }
     </ul>
     <a class="callout-link">
-      Inspect collection quality <tabler-icon icon="chevron-right" [size]="14" />
+      Inspect source reliability <tabler-icon icon="chevron-right" [size]="14" />
     </a>
   </article>
 </section>

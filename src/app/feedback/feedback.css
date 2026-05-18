@@ -198,6 +198,96 @@ app-filter-bar.filter-bar {
   font-size: 15px;
   font-weight: 600;
   color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* formula info icon + tooltip */
+.formula-info {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  color: var(--text-dim);
+  cursor: default;
+  flex: 0 0 auto;
+}
+
+.formula-info:hover { color: var(--text); }
+
+.formula-tooltip {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 280px;
+  background: var(--bg-elevated);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 14px 16px;
+  z-index: 200;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+  pointer-events: none;
+}
+
+.ft-label {
+  margin: 0 0 10px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-dim);
+}
+
+.ft-formula {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.ft-fraction {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  font-size: 14px;
+  font-style: italic;
+  color: var(--text);
+}
+
+.ft-num, .ft-den { white-space: nowrap; }
+
+.ft-bar {
+  width: 100%;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.ft-vars {
+  margin: 0 0 10px;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.ft-vars li {
+  font-size: 11.5px;
+  color: var(--text-dim);
+}
+
+.ft-vars li strong {
+  color: var(--text);
+  font-style: italic;
+  margin-right: 2px;
+}
+
+.ft-note {
+  margin: 0;
+  font-size: 11px;
+  color: var(--warning);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding-top: 8px;
 }
 
 .callout-body {
