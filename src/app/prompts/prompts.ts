@@ -80,7 +80,7 @@ export class Prompts {
         name: 'Economic Growth & Labor Markets',
         pct: 28,
         count: 79,
-        agent: 'sherlock',
+        agent: 'synthesis',
         prompts: [
           'What are the latest labor market trends in MNA?',
           'Compare GDP growth across EAP middle-income countries',
@@ -130,7 +130,7 @@ export class Prompts {
         name: 'Climate & Infrastructure',
         pct: 11,
         count: 31,
-        agent: 'sherlock',
+        agent: 'synthesis',
         trending: true,
         prompts: [
           'Compare climate finance flows by region',
