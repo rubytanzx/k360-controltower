@@ -1,0 +1,149 @@
+<div class="shell" [class.is-expanded]="expanded()" [class.is-ai-open]="aiOpen()">
+  <aside class="sidebar" [attr.aria-expanded]="expanded()">
+    <a class="logo" aria-label="wb-control-tower">
+      <img src="/globe.svg" width="40" height="40" alt="" class="logo-icon" />
+      <span class="brand-name">Control Tower</span>
+    </a>
+
+    <nav class="nav">
+      @for (item of nav; track item.label) {
+        @if (item.route) {
+          <a
+            class="nav-item"
+            [routerLink]="item.route"
+            routerLinkActive="is-active"
+            [routerLinkActiveOptions]="{ exact: item.route === '/' }"
+            [attr.aria-label]="item.label"
+          >
+            <tabler-icon [icon]="item.icon" [size]="22" />
+            <span class="nav-label">{{ item.label }}</span>
+          </a>
+        } @else {
+          <a class="nav-item" [attr.aria-label]="item.label">
+            <tabler-icon [icon]="item.icon" [size]="22" />
+            <span class="nav-label">{{ item.label }}</span>
+          </a>
+        }
+      }
+    </nav>
+
+    <div class="sidebar-footer">
+      @for (item of footerLinks; track item.label) {
+        <a class="nav-item" [attr.aria-label]="item.label">
+          <tabler-icon [icon]="item.icon" [size]="22" />
+          <span class="nav-label">{{ item.label }}</span>
+        </a>
+      }
+
+      <button
+        class="nav-item toggle"
+        type="button"
+        (click)="toggle()"
+        [attr.aria-label]="expanded() ? 'Collapse sidebar' : 'Expand sidebar'"
+      >
+        <tabler-icon
+          [icon]="expanded() ? 'layout-sidebar-left-collapse' : 'layout-sidebar-left-expand'"
+          [size]="22"
+        />
+        <span class="nav-label">Collapse</span>
+      </button>
+
+      <div class="avatar-row">
+        <div class="avatar" aria-label="Nick T">NT</div>
+        <span class="avatar-name">Nick T</span>
+      </div>
+    </div>
+  </aside>
+
+  <main class="content">
+    <router-outlet />
+  </main>
+
+  <!-- Floating Ask AI button -->
+  <button
+    class="ai-fab"
+    type="button"
+    [class.is-hidden]="aiOpen()"
+    (click)="openAi()"
+    aria-label="Ask AI"
+  >
+    <tabler-icon icon="sparkles" [size]="24" />
+  </button>
+
+  <!-- Ask AI side panel — inline, content shrinks responsively -->
+  @if (aiOpen()) {
+    <aside class="ai-panel" role="complementary" aria-label="Ask AI">
+    <header class="ai-head">
+      <div class="ai-head-title">
+        <span class="ai-orb"></span>
+        <span>Ask AI</span>
+      </div>
+      <button class="ai-head-close" (click)="closeAi()" aria-label="Close">
+        <tabler-icon icon="x" [size]="18" />
+      </button>
+    </header>
+
+    <div class="ai-conversation">
+      @for (msg of aiMessages; track $index) {
+        @if (msg.role === 'user') {
+          <div class="ai-msg user-msg">
+            <div class="user-bubble">{{ msg.text }}</div>
+            <div class="user-avatar">NT</div>
+          </div>
+        } @else {
+          <div class="ai-msg assistant-msg">
+            <div class="assistant-avatar">
+              <span class="ai-orb small"></span>
+            </div>
+            <div class="assistant-body">
+              @for (sec of msg.sections; track $index) {
+                @if (sec.type === 'p') {
+                  <p>{{ sec.text }}</p>
+                } @else {
+                  <ul>
+                    @for (item of sec.items; track item) {
+                      <li>{{ item }}</li>
+                    }
+                  </ul>
+                }
+              }
+              @if (msg.sourcesCount) {
+                <a class="ai-sources">
+                  Used {{ msg.sourcesCount }} sources
+                  <tabler-icon icon="chevron-down" [size]="12" />
+                </a>
+              }
+              <div class="ai-msg-actions">
+                <button type="button" aria-label="Copy">
+                  <tabler-icon icon="copy" [size]="14" />
+                </button>
+                <button type="button" aria-label="Thumbs up">
+                  <tabler-icon icon="thumb-up" [size]="14" />
+                </button>
+                <button type="button" aria-label="Thumbs down">
+                  <tabler-icon icon="thumb-down" [size]="14" />
+                </button>
+              </div>
+            </div>
+          </div>
+        }
+      }
+    </div>
+
+    <form class="ai-input-bar" (submit)="$event.preventDefault()">
+      <input
+        type="text"
+        placeholder="Ask me anything..."
+        [value]="aiInput()"
+        (input)="setAiInput($any($event.target).value)"
+      />
+      <button type="button" class="ai-attach" aria-label="Attach">
+        <tabler-icon icon="paperclip" [size]="16" />
+      </button>
+      <button type="submit" class="ai-send" aria-label="Send">
+        <tabler-icon icon="arrow-up" [size]="16" />
+      </button>
+    </form>
+    </aside>
+  }
+</div>

@@ -1,0 +1,229 @@
+<header class="page-header">
+  <h1 class="title">Prompts</h1>
+  <button class="bell" aria-label="Notifications">
+    <tabler-icon icon="bell" [size]="26" />
+    <span class="badge">4</span>
+  </button>
+</header>
+
+<app-filter-bar class="filter-bar" />
+
+<!-- Row 1: KPIs -->
+<section class="kpi-grid">
+  <article class="card kpi-card">
+    <header class="kpi-head">
+      <span class="kpi-title">Total Prompts</span>
+      <span class="kpi-icon" data-tone="cyan"><tabler-icon icon="messages" [size]="18" /></span>
+    </header>
+    <div class="kpi-row">
+      <span class="kpi-value">{{ totalPrompts }}</span>
+      <span class="kpi-delta good">
+        <tabler-icon icon="arrow-up" [size]="12" />+18%
+      </span>
+    </div>
+    <p class="kpi-sub">this period</p>
+  </article>
+
+  <article class="card kpi-card">
+    <header class="kpi-head">
+      <span class="kpi-title">Search Success Rate</span>
+      <span class="kpi-icon" data-tone="green"><tabler-icon icon="target" [size]="18" /></span>
+    </header>
+    <div class="kpi-row">
+      <span class="kpi-value">~{{ searchSuccessPct }}%</span>
+    </div>
+    <p class="kpi-sub">click-through proxy · target ≥80%</p>
+    <div class="success-bar">
+      <div class="success-bar-fill"></div>
+      <div class="success-bar-target" aria-label="80% target"></div>
+    </div>
+  </article>
+
+  <article class="card kpi-card">
+    <header class="kpi-head">
+      <span class="kpi-title">Prompts With Actions</span>
+      <span class="kpi-icon" data-tone="purple"><tabler-icon icon="copy" [size]="18" /></span>
+    </header>
+    <div class="kpi-row">
+      <span class="kpi-value">{{ promptsWithActionsPct }}%</span>
+      <span class="kpi-delta good">
+        <tabler-icon icon="arrow-up" [size]="12" />+9pp
+      </span>
+    </div>
+    <p class="kpi-sub">copied, saved as Word or PPT</p>
+  </article>
+
+  <article class="card kpi-card">
+    <header class="kpi-head">
+      <span class="kpi-title">Topics Tracked</span>
+      <span class="kpi-icon" data-tone="amber"><tabler-icon icon="chart-pie" [size]="18" /></span>
+    </header>
+    <div class="kpi-row">
+      <span class="kpi-value">{{ uniqueTopics }}</span>
+    </div>
+    <p class="kpi-sub">distinct topic clusters</p>
+  </article>
+</section>
+
+<!-- Row 2: Topic distribution treemap -->
+<section class="row-2-single">
+  <article class="card distribution-card">
+    <header class="card-head">
+      <div class="title-wrap">
+        <tabler-icon icon="sparkles" [size]="18" />
+        <h3 class="card-title">Topic Distribution</h3>
+      </div>
+      <a class="link-strong" routerLink="/prompts/analysis">
+        Drill into analysis <tabler-icon icon="chevron-right" [size]="16" />
+      </a>
+    </header>
+
+    <div class="ai-summary">
+      <span class="ai-summary-icon">
+        <tabler-icon icon="sparkles" [size]="14" />
+      </span>
+      <p class="ai-summary-text">{{ aiSummary }}</p>
+    </div>
+
+    <div class="constellation-legend">
+      @for (a of agents; track a.id) {
+        <span class="legend-item">
+          <span class="agent-dot" [style.background]="agentColor[a.id]"></span>
+          {{ a.name }}
+        </span>
+      }
+    </div>
+
+    <div class="treemap">
+      @for (row of treemap; track $index; let rowIdx = $index) {
+        <div class="treemap-row" [style.flex]="rowFlex(row)">
+          @for (t of row; track t.id) {
+            <a
+              class="treemap-cell"
+              [class.is-trending]="t.trending"
+              [class.is-hovered]="hoveredTopic()?.id === t.id"
+              [style.flex]="t.pct"
+              [style.background]="agentColor[t.agent]"
+              [routerLink]="['/prompts/analysis']"
+              [queryParams]="{ topic: t.id }"
+              (mouseenter)="hoveredTopic.set(t)"
+              (mouseleave)="hoveredTopic.set(null)"
+            >
+              <div class="cell-name">{{ t.name }}</div>
+              <div class="cell-meta">
+                <span class="cell-pct">{{ t.pct }}%</span>
+                <span class="cell-dot">·</span>
+                <span class="cell-count">{{ t.count }} prompts</span>
+              </div>
+
+              @if (t.trending) {
+                <div class="cell-trending">
+                  <tabler-icon icon="trending-up" [size]="12" />
+                  Trending
+                </div>
+              }
+
+              <span class="cell-cta">
+                Open topic <tabler-icon icon="chevron-right" [size]="12" />
+              </span>
+
+              @if (hoveredTopic()?.id === t.id) {
+                <div class="topic-tooltip" [attr.data-row]="rowIdx">
+                  <div class="tip-head">
+                    <span class="tip-dot" [style.background]="agentColor[t.agent]"></span>
+                    <span class="tip-name">{{ t.name }}</span>
+                  </div>
+                  <div class="tip-meta">
+                    <span>{{ t.count }} prompts</span>
+                    <span class="dot-sep">·</span>
+                    <span>{{ t.pct }}% share</span>
+                  </div>
+                  <div class="tip-section">Top 3 example prompts</div>
+                  <ul class="tip-prompts">
+                    @for (p of t.prompts; track p) {
+                      <li>{{ p }}</li>
+                    }
+                  </ul>
+                </div>
+              }
+            </a>
+          }
+        </div>
+      }
+    </div>
+  </article>
+</section>
+
+<!-- Row 3: Emerging themes — hidden, may bring back later
+<section class="card emerging-card">
+  <header class="card-head">
+    <div class="title-wrap">
+      <tabler-icon icon="bulb" [size]="18" />
+      <h3 class="card-title">Emerging Themes Over Time</h3>
+    </div>
+    <span class="muted">Sep 2024 — Feb 2025</span>
+  </header>
+  ... chart removed for now ...
+</section>
+-->
+
+
+<!-- Row 4: Topic mix by unit + Action breakdown -->
+<section class="row-4">
+  <article class="card">
+    <header class="card-head">
+      <h3 class="card-title">Topic Mix by Unit</h3>
+      <span class="muted">share of prompts per unit</span>
+    </header>
+    <ul class="unit-mix">
+      @for (row of unitRows(); track row.name) {
+        <li class="mix-row">
+          <span class="mix-label">{{ row.name }}</span>
+          <div class="mix-bar">
+            @for (seg of row.segments; track seg.name) {
+              @if (seg.pct > 0) {
+                <div
+                  class="mix-seg"
+                  [style.flex]="seg.pct"
+                  [style.background]="seg.color"
+                  [title]="seg.name + ' · ' + seg.count + ' prompts'"
+                ></div>
+              }
+            }
+          </div>
+          <span class="mix-total">{{ row.total }}</span>
+        </li>
+      }
+    </ul>
+    <p class="mix-hint">Stacked bars colored by topic — hover for details.</p>
+  </article>
+
+  <article class="card">
+    <header class="card-head">
+      <h3 class="card-title">Actions Taken on Results</h3>
+      <span class="muted">{{ promptsWithActionsPct }}% of prompts</span>
+    </header>
+    <ul class="action-list">
+      @for (a of actions; track a.name) {
+        <li class="action-row">
+          <span class="action-icon" [style.background]="a.color + '22'" [style.color]="a.color">
+            <tabler-icon [icon]="a.icon" [size]="16" />
+          </span>
+          <div class="action-body">
+            <div class="action-line">
+              <span class="action-name">{{ a.name }}</span>
+              <span class="action-meta">{{ a.count }} · {{ a.pct }}%</span>
+            </div>
+            <div class="action-bar">
+              <div
+                class="action-bar-fill"
+                [style.width.%]="a.pct"
+                [style.background]="a.color"
+              ></div>
+            </div>
+          </div>
+        </li>
+      }
+    </ul>
+  </article>
+</section>

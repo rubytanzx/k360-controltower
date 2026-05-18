@@ -1,0 +1,208 @@
+<header class="page-header">
+  <h1 class="title">Users</h1>
+  <button class="bell" aria-label="Notifications">
+    <tabler-icon icon="bell" [size]="26" />
+    <span class="badge">4</span>
+  </button>
+</header>
+
+<app-filter-bar class="filter-bar" />
+
+<!-- User engagement row -->
+<h2 class="section-label">User Engagement</h2>
+<section class="kpi-grid kpi-grid-5">
+  <article class="card kpi-card">
+    <header class="kpi-head">
+      <span class="kpi-title">{{ uniqueActiveUsers.title }}</span>
+      <span class="kpi-delta">
+        <tabler-icon icon="arrow-up" [size]="12" />{{ uniqueActiveUsers.delta }}
+      </span>
+    </header>
+    <div class="kpi-row">
+      <span class="kpi-value">{{ uniqueActiveUsers.value }}</span>
+      <span class="kpi-unit">{{ uniqueActiveUsers.unit }}</span>
+    </div>
+    <p class="kpi-target">
+      <tabler-icon icon="users" [size]="12" />used K360 in range
+    </p>
+  </article>
+
+  <article class="card kpi-card">
+    <header class="kpi-head">
+      <span class="kpi-title">{{ activeUsers.title }}</span>
+      <span class="kpi-delta">
+        <tabler-icon icon="arrow-up" [size]="12" />{{ activeUsers.delta }}
+      </span>
+    </header>
+    <div class="kpi-row">
+      <span class="kpi-value">{{ activeUsers.value }}</span>
+      <span class="kpi-unit">{{ activeUsers.unit }}</span>
+    </div>
+    <svg viewBox="0 0 220 50" preserveAspectRatio="none" class="kpi-spark">
+      <defs>
+        <linearGradient id="u-spark-1" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#1ad6ff" stop-opacity="0.5" />
+          <stop offset="100%" stop-color="#1ad6ff" stop-opacity="0" />
+        </linearGradient>
+      </defs>
+      <path
+        d="M 0,42 C 30,40 55,38 85,36 S 145,28 175,18 S 210,8 220,4 L 220,50 L 0,50 Z"
+        fill="url(#u-spark-1)"
+      />
+      <path
+        d="M 0,42 C 30,40 55,38 85,36 S 145,28 175,18 S 210,8 220,4"
+        fill="none"
+        stroke="#1ad6ff"
+        stroke-width="2"
+      />
+    </svg>
+  </article>
+
+  <article class="card kpi-card">
+    <header class="kpi-head">
+      <span class="kpi-title">{{ adoption.title }}</span>
+    </header>
+    <div class="kpi-arc-wrap">
+      <svg viewBox="0 0 100 100" class="kpi-arc">
+        <circle cx="50" cy="50" r="42" stroke="var(--bg-elevated)" stroke-width="8" fill="none" />
+        <circle
+          cx="50"
+          cy="50"
+          r="42"
+          stroke="#1ad6ff"
+          stroke-width="8"
+          fill="none"
+          stroke-linecap="round"
+          [attr.stroke-dasharray]="arcStroke(adoption.arcPct).dash"
+          transform="rotate(-90 50 50)"
+        />
+      </svg>
+      <div class="kpi-arc-center">
+        <span class="kpi-value">{{ adoption.value }}</span>
+        <span class="kpi-sub">{{ adoption.sub }}</span>
+      </div>
+    </div>
+  </article>
+
+  <article class="card kpi-card">
+    <header class="kpi-head">
+      <span class="kpi-title">{{ avgViews.title }}</span>
+      <span class="kpi-delta">
+        <tabler-icon icon="arrow-up" [size]="12" />{{ avgViews.delta }}
+      </span>
+    </header>
+    <div class="kpi-row">
+      <span class="kpi-value">{{ avgViews.value }}</span>
+      <span class="kpi-unit">{{ avgViews.unit }}</span>
+    </div>
+    <p class="kpi-target">
+      <tabler-icon icon="target" [size]="12" />{{ avgViews.sub }}
+    </p>
+    <svg viewBox="0 0 220 50" preserveAspectRatio="none" class="kpi-spark">
+      <defs>
+        <linearGradient id="u-spark-2" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#4ade80" stop-opacity="0.45" />
+          <stop offset="100%" stop-color="#4ade80" stop-opacity="0" />
+        </linearGradient>
+      </defs>
+      <path
+        d="M 0,40 C 30,38 60,36 90,34 S 150,28 180,20 S 210,12 220,8 L 220,50 L 0,50 Z"
+        fill="url(#u-spark-2)"
+      />
+      <path
+        d="M 0,40 C 30,38 60,36 90,34 S 150,28 180,20 S 210,12 220,8"
+        fill="none"
+        stroke="#4ade80"
+        stroke-width="2"
+      />
+    </svg>
+  </article>
+
+  <article class="card kpi-card">
+    <header class="kpi-head">
+      <span class="kpi-title">{{ actionTakingUsers.title }}</span>
+      <span class="kpi-delta">
+        <tabler-icon icon="arrow-up" [size]="12" />{{ actionTakingUsers.delta }}
+      </span>
+    </header>
+    <div class="kpi-row">
+      <span class="kpi-value">{{ actionTakingUsers.value }}</span>
+    </div>
+    <p class="kpi-target">
+      <tabler-icon icon="hand-click" [size]="12" />{{ actionTakingUsers.sub }}
+    </p>
+  </article>
+</section>
+
+<!-- Behavioral Segmentation -->
+<h2 class="section-label">Behavior</h2>
+<section class="matrix-section">
+  <article class="card matrix-card">
+    <header class="card-head">
+      <div>
+        <h3 class="card-title">Behavioral Segmentation Matrix</h3>
+        <p class="card-sub">User distribution based on conversation volume vs. prompt intensity</p>
+      </div>
+      <button class="more-btn" aria-label="More">
+        <tabler-icon icon="dots-vertical" [size]="18" />
+      </button>
+    </header>
+
+    <div class="matrix-wrap">
+      <div class="y-label">NUMBER OF PROMPTS (Y)</div>
+      <div class="matrix-grid">
+        @for (s of segments; track s.id) {
+          <button
+            type="button"
+            class="matrix-cell"
+            [attr.data-seg]="s.id"
+            [class.is-selected]="selectedSegment() === s.id"
+            (click)="selectSegment(s.id)"
+          >
+            <span class="seg-pill">
+              <span class="seg-dot"></span>{{ s.name }}
+            </span>
+            <div class="seg-bottom">
+              <span class="seg-pct">{{ s.pct }}%</span>
+              <span class="seg-users">{{ s.users }}</span>
+            </div>
+          </button>
+        }
+      </div>
+      <div class="x-label">NUMBER OF CONVERSATIONS (X)</div>
+    </div>
+  </article>
+
+  <article class="card summary-card" [class.is-empty]="!currentSegment()">
+    @if (currentSegment(); as seg) {
+      <header class="summary-head">
+        <span class="summary-seg-pill" [attr.data-seg]="seg.id">
+          <span class="seg-dot"></span>{{ seg.name }}
+        </span>
+        <div class="summary-meta">
+          <span class="summary-pct">{{ seg.pct }}%</span>
+          <span class="summary-users">{{ seg.users }}</span>
+        </div>
+      </header>
+
+      <section class="summary-ai">
+        <header class="summary-ai-head">
+          <tabler-icon icon="sparkles" [size]="14" />
+          <span>AI Summary</span>
+        </header>
+        <p class="summary-ai-text">{{ currentSummary() }}</p>
+      </section>
+    } @else {
+      <div class="summary-empty">
+        <span class="summary-empty-icon">
+          <tabler-icon icon="sparkles" [size]="24" />
+        </span>
+        <p class="summary-empty-title">Select a user type to know more</p>
+        <p class="summary-empty-sub">
+          Tap any quadrant in the matrix to see behavioral patterns, signals,
+          and growth opportunities for that cohort.
+        </p>
+      </div>
+    }
+  </article>
+</section>

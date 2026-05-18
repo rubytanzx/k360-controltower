@@ -1,0 +1,164 @@
+<header class="page-header">
+  <h1 class="title">Feedback</h1>
+  <button class="bell" aria-label="Notifications">
+    <tabler-icon icon="bell" [size]="26" />
+    <span class="badge">4</span>
+  </button>
+</header>
+
+<app-filter-bar class="filter-bar" />
+
+<!-- KPI row -->
+<h2 class="section-label">Feedback Quality</h2>
+<section class="kpi-grid">
+  @for (k of kpis; track k.title) {
+    <article class="card kpi-card">
+      <header class="kpi-head">
+        <span class="kpi-title">{{ k.title }}</span>
+        <span class="kpi-delta" [class.is-bad]="k.deltaTone === 'bad'">
+          <tabler-icon icon="arrow-up" [size]="12" />{{ k.delta }}
+        </span>
+      </header>
+      <div class="kpi-row">
+        <span class="kpi-value">{{ k.value }}</span>
+      </div>
+      @if (k.title === 'Search Success Rate') {
+        <p class="kpi-sub">{{ searchSuccessSub }}</p>
+      }
+    </article>
+  }
+</section>
+
+<!-- Callouts -->
+<section class="callout-grid">
+  <article class="card callout callout-negative">
+    <header class="callout-head">
+      <span class="callout-icon">
+        <tabler-icon icon="trending-down" [size]="20" />
+      </span>
+      <h3 class="callout-title">Biggest Negative Spike</h3>
+    </header>
+    <p class="callout-body">Significant drop in satisfaction detected in:</p>
+    <div class="callout-tag">
+      <span class="tag-label">Category</span>
+      <span class="tag-value">Policies, Procedures &amp; Guidelines</span>
+    </div>
+    <a class="callout-link">
+      View all 142 affected Prompts <tabler-icon icon="chevron-right" [size]="14" />
+    </a>
+  </article>
+
+  <article class="card callout callout-drivers">
+    <header class="callout-head">
+      <span class="callout-icon">
+        <tabler-icon icon="tag" [size]="20" />
+      </span>
+      <h3 class="callout-title">Top Negative Drivers</h3>
+    </header>
+    <p class="callout-body">Users are flagging these issues most frequently:</p>
+    <div class="driver-chips">
+      @for (d of negativeDrivers; track d) {
+        <span class="driver-chip">{{ d }}</span>
+      }
+    </div>
+    <a class="callout-link">
+      Run Root Cause Analysis <tabler-icon icon="chevron-right" [size]="14" />
+    </a>
+  </article>
+
+  <article class="card callout callout-assets">
+    <header class="callout-head">
+      <span class="callout-icon">
+        <tabler-icon icon="target" [size]="20" />
+      </span>
+      <h3 class="callout-title">Most Impacted Assets</h3>
+    </header>
+    <p class="callout-body">Collections receiving most negative feedback:</p>
+    <ul class="asset-list">
+      @for (a of impactedAssets; track a.name) {
+        <li class="asset-row">
+          <div class="asset-line">
+            <span class="asset-name">
+              <tabler-icon icon="database" [size]="14" />{{ a.name }}
+            </span>
+            <span class="asset-pct">
+              <tabler-icon icon="thumb-down" [size]="12" />{{ a.pct }}%
+            </span>
+          </div>
+          <div class="asset-bar">
+            <div class="asset-bar-fill" [style.width.%]="a.pct"></div>
+          </div>
+        </li>
+      }
+    </ul>
+    <a class="callout-link">
+      Inspect asset quality <tabler-icon icon="chevron-right" [size]="14" />
+    </a>
+  </article>
+</section>
+
+<!-- Trends -->
+<section class="trends-section">
+  <article class="card trends-card">
+    <header class="card-head">
+      <h3 class="card-title">Feedback Volume Trends</h3>
+      <div class="cadence-toggle">
+        <button
+          [class.is-active]="trendCadence() === 'monthly'"
+          (click)="setTrendCadence('monthly')"
+        >Monthly</button>
+        <button
+          [class.is-active]="trendCadence() === 'weekly'"
+          (click)="setTrendCadence('weekly')"
+        >Weekly</button>
+      </div>
+    </header>
+
+    <div class="trends-legend">
+      <span><span class="legend-dot positive"></span>Positive</span>
+      <span><span class="legend-dot negative"></span>Negative</span>
+    </div>
+
+    <div class="trends-chart">
+      <div class="y-axis">
+        @for (t of yAxisTicks; track t) {
+          <span>{{ t }}</span>
+        }
+      </div>
+      <svg viewBox="0 0 600 220" preserveAspectRatio="none" class="trends-svg">
+        <defs>
+          <linearGradient id="positive-fade" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#4ade80" stop-opacity="0.25" />
+            <stop offset="100%" stop-color="#4ade80" stop-opacity="0" />
+          </linearGradient>
+        </defs>
+        @for (t of yAxisTicks; track t; let i = $index) {
+          <line
+            [attr.x1]="0"
+            [attr.x2]="600"
+            [attr.y1]="i * 55"
+            [attr.y2]="i * 55"
+            stroke="#1f3050"
+            stroke-dasharray="2 4"
+            opacity="0.5"
+          />
+        }
+        <path [attr.d]="positiveAreaPath" fill="url(#positive-fade)" />
+        <path
+          [attr.d]="positiveLinePath"
+          fill="none"
+          stroke="#4ade80"
+          stroke-width="2.5"
+          stroke-linecap="round"
+        />
+        <path
+          [attr.d]="negativeLinePath"
+          fill="none"
+          stroke="#ef4444"
+          stroke-width="2.5"
+          stroke-linecap="round"
+        />
+      </svg>
+    </div>
+  </article>
+</section>

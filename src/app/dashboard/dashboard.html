@@ -1,0 +1,328 @@
+<header class="page-header">
+  <h1 class="welcome">Welcome back, Nick</h1>
+  <button class="bell" aria-label="Notifications">
+    <tabler-icon icon="bell" [size]="26" />
+    <span class="badge">4</span>
+  </button>
+</header>
+
+<app-filter-bar class="filter-bar" />
+
+<section class="kpi-grid">
+  @for (k of kpis; track k.title; let i = $index) {
+    <article class="card kpi-card" [attr.data-variant]="k.variant">
+      <header class="kpi-head">
+        <span class="kpi-title">{{ k.title }}</span>
+        <tabler-icon class="info" icon="info-circle" [size]="14" />
+      </header>
+
+      @switch (k.variant) {
+        @case ('sparkline') {
+          <div class="kpi-row">
+            <span class="kpi-value">{{ k.value }}</span>
+            @if (k.unit) {
+              <span class="kpi-unit">{{ k.unit }}</span>
+            }
+            <span class="kpi-delta">
+              <tabler-icon icon="arrow-up" [size]="12" />{{ k.delta }}
+            </span>
+          </div>
+          @if (k.sub) {
+            <p class="kpi-sub">{{ k.sub }}</p>
+          }
+          <svg viewBox="0 0 220 50" preserveAspectRatio="none" class="kpi-spark">
+            <defs>
+              <linearGradient [attr.id]="'kpi-grad-' + i" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#1ad6ff" stop-opacity="0.5" />
+                <stop offset="100%" stop-color="#1ad6ff" stop-opacity="0" />
+              </linearGradient>
+            </defs>
+            <path
+              d="M 0,42 C 30,40 55,38 85,36 S 145,28 175,18 S 210,8 220,4 L 220,50 L 0,50 Z"
+              [attr.fill]="'url(#kpi-grad-' + i + ')'"
+            />
+            <path
+              d="M 0,42 C 30,40 55,38 85,36 S 145,28 175,18 S 210,8 220,4"
+              fill="none"
+              stroke="#1ad6ff"
+              stroke-width="2"
+            />
+          </svg>
+        }
+
+        @case ('arc') {
+          <div class="kpi-arc-wrap">
+            <svg viewBox="0 0 100 100" class="kpi-arc">
+              <circle
+                cx="50"
+                cy="50"
+                r="42"
+                stroke="var(--bg-elevated)"
+                stroke-width="8"
+                fill="none"
+              />
+              <circle
+                cx="50"
+                cy="50"
+                r="42"
+                stroke="#1ad6ff"
+                stroke-width="8"
+                fill="none"
+                stroke-linecap="round"
+                [attr.stroke-dasharray]="arcStroke(k.arcPct ?? 0).dash"
+                transform="rotate(-90 50 50)"
+              />
+            </svg>
+            <div class="kpi-arc-center">
+              <span class="kpi-value">{{ k.value }}</span>
+              <span class="kpi-sub">{{ k.sub }}</span>
+            </div>
+          </div>
+        }
+
+        @case ('placeholder') {
+          <div class="kpi-placeholder">
+            <span class="kpi-placeholder-icon">
+              <tabler-icon [icon]="k.icon!" [size]="20" />
+            </span>
+            <p class="kpi-placeholder-text">{{ k.placeholder }}</p>
+          </div>
+        }
+
+        @case ('status') {
+          <div class="kpi-status">
+            <span class="status-dot"></span>
+            <span class="kpi-value">{{ k.value }}</span>
+          </div>
+          <p class="kpi-sub">{{ k.sub }}</p>
+        }
+
+        @case ('target') {
+          <div class="kpi-row">
+            <span class="kpi-value">{{ k.value }}</span>
+          </div>
+          <p class="kpi-sub">{{ k.sub }}</p>
+        }
+
+        @case ('response') {
+          <div class="kpi-row">
+            <span class="kpi-value">{{ k.value }}</span>
+            @if (k.unit) {
+              <span class="kpi-unit">{{ k.unit }}</span>
+            }
+            <span class="kpi-delta good">
+              <tabler-icon icon="arrow-down" [size]="12" />{{ k.delta }}
+            </span>
+          </div>
+          @if (k.sub) {
+            <p class="kpi-sub">{{ k.sub }}</p>
+          }
+          <svg viewBox="0 0 220 50" preserveAspectRatio="none" class="kpi-spark">
+            <defs>
+              <linearGradient [attr.id]="'resp-grad-' + i" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#4ade80" stop-opacity="0.45" />
+                <stop offset="100%" stop-color="#4ade80" stop-opacity="0" />
+              </linearGradient>
+            </defs>
+            <path
+              d="M 0,12 C 30,16 55,20 85,22 S 145,28 175,34 S 210,40 220,44 L 220,50 L 0,50 Z"
+              [attr.fill]="'url(#resp-grad-' + i + ')'"
+            />
+            <path
+              d="M 0,12 C 30,16 55,20 85,22 S 145,28 175,34 S 210,40 220,44"
+              fill="none"
+              stroke="#4ade80"
+              stroke-width="2"
+            />
+          </svg>
+        }
+
+        @case ('uptime') {
+          <div class="kpi-row">
+            <span class="uptime-value">{{ k.value }}</span>
+          </div>
+          <p class="kpi-sub">{{ k.sub }}</p>
+
+          <div class="uptime-foot">
+            <span class="uptime-delta">
+              <tabler-icon icon="triangle-filled" [size]="9" />
+              {{ k.delta }} vs last month
+            </span>
+            <span class="uptime-sla">
+              <span class="sla-dot"></span>
+              SLA Target: ≥99%
+            </span>
+          </div>
+
+          <svg
+            viewBox="0 0 220 50"
+            preserveAspectRatio="none"
+            class="kpi-spark uptime-spark"
+          >
+            <defs>
+              <linearGradient id="uptime-fade" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#4ade80" stop-opacity="0.45" />
+                <stop offset="100%" stop-color="#4ade80" stop-opacity="0" />
+              </linearGradient>
+            </defs>
+            <path
+              d="M 0,42 C 22,40 44,36 66,32 S 110,24 143,18 S 187,12 220,6 L 220,50 L 0,50 Z"
+              fill="url(#uptime-fade)"
+            />
+            <path
+              d="M 0,42 C 22,40 44,36 66,32 S 110,24 143,18 S 187,12 220,6"
+              fill="none"
+              stroke="#4ade80"
+              stroke-width="2"
+              stroke-linecap="round"
+            />
+            <circle cx="220" cy="6" r="5" fill="#4ade80" opacity="0.35" />
+            <circle cx="220" cy="6" r="2.5" fill="#86efac" />
+          </svg>
+        }
+      }
+    </article>
+  }
+</section>
+
+<section class="row2-grid">
+  <article class="card agents-card">
+    <header class="lower-head">
+      <div class="title-wrap">
+        <tabler-icon icon="robot" [size]="18" />
+        <span class="lower-title">Agents</span>
+      </div>
+      <a class="view-link" routerLink="/assets" [queryParams]="{ tab: 'agents' }">
+        View <tabler-icon icon="chevron-right" [size]="16" />
+      </a>
+    </header>
+
+    <div class="agent-bar">
+      @for (a of agents; track a.id) {
+        <div
+          class="agent-seg"
+          [attr.data-agent]="a.id"
+          [style.flex]="a.pct"
+          [title]="a.name + ' · ' + a.pct + '%'"
+        ></div>
+      }
+    </div>
+
+    <ul class="agent-legend">
+      @for (a of agents; track a.id) {
+        <li>
+          <span class="agent-dot" [attr.data-agent]="a.id"></span>
+          <span class="agent-name">{{ a.name }}</span>
+          <span class="agent-pct">{{ a.pct }}%</span>
+        </li>
+      }
+    </ul>
+  </article>
+
+  <article class="card ingested-card">
+    <header class="lower-head">
+      <div class="title-wrap">
+        <tabler-icon icon="database" [size]="18" />
+        <span class="lower-title">Ingested Collections</span>
+      </div>
+      <a class="view-link" routerLink="/assets" [queryParams]="{ tab: 'collections' }">
+        View <tabler-icon icon="chevron-right" [size]="16" />
+      </a>
+    </header>
+    <div class="ingested-body">
+      <span class="ingested-value">{{ ingested.value }}</span>
+      <span class="ingested-delta">
+        <tabler-icon icon="arrow-up" [size]="14" />{{ ingested.delta }}
+      </span>
+    </div>
+  </article>
+</section>
+
+<section class="card thematic-card">
+  <header class="lower-head">
+    <div class="title-wrap">
+      <tabler-icon icon="sparkles" [size]="18" />
+      <span class="lower-title">Thematic Breakdown</span>
+    </div>
+    <a class="link-strong" routerLink="/prompts/analysis">
+      View Prompts Analysis <tabler-icon icon="chevron-right" [size]="16" />
+    </a>
+  </header>
+
+  <div class="constellation-legend">
+    @for (a of agents; track a.id) {
+      <span class="legend-item">
+        <span class="agent-dot" [attr.data-agent]="a.id"></span>
+        {{ a.name }}
+      </span>
+    }
+  </div>
+
+  <div class="treemap">
+    @for (row of treemap; track $index; let rowIdx = $index) {
+      <div class="treemap-row" [style.flex]="rowFlex(row)">
+        @for (t of row; track t.id) {
+          <a
+            class="treemap-cell"
+            [class.is-trending]="t.trending"
+            [class.is-hovered]="hoveredTopic()?.id === t.id"
+            [style.flex]="t.pct"
+            [style.background]="agentColor[t.agent]"
+            [routerLink]="['/prompts/analysis']"
+            [queryParams]="{ topic: t.id }"
+            (mouseenter)="hoveredTopic.set(t)"
+            (mouseleave)="hoveredTopic.set(null)"
+          >
+            <div class="cell-name">{{ t.name }}</div>
+            <div class="cell-meta">
+              <span class="cell-pct">{{ t.pct }}%</span>
+              <span class="cell-dot">·</span>
+              <span class="cell-count">{{ t.count }} prompts</span>
+            </div>
+
+            @if (t.trending) {
+              <div class="cell-trending">
+                <tabler-icon icon="trending-up" [size]="12" />
+                Trending
+              </div>
+            }
+
+            <span class="cell-cta">
+              Open topic <tabler-icon icon="chevron-right" [size]="12" />
+            </span>
+
+            @if (hoveredTopic()?.id === t.id) {
+              <div class="topic-tooltip" [attr.data-row]="rowIdx">
+                <div class="tip-head">
+                  <span class="tip-dot" [attr.data-agent]="t.agent"></span>
+                  <span class="tip-name">{{ t.name }}</span>
+                </div>
+                <div class="tip-meta">
+                  <span>{{ t.count }} prompts</span>
+                  <span class="dot-sep">·</span>
+                  <span>{{ t.pct }}% share</span>
+                </div>
+                <div class="tip-section">Top 3 example prompts</div>
+                <ul class="tip-prompts">
+                  @for (p of t.prompts; track p) {
+                    <li>{{ p }}</li>
+                  }
+                </ul>
+              </div>
+            }
+          </a>
+        }
+      </div>
+    }
+  </div>
+
+  <div class="insight-rotator">
+    @for (msg of insights; track $index; let i = $index) {
+      <p class="insight" [class.is-active]="insightIndex() === i">
+        <tabler-icon icon="sparkles" [size]="14" />
+        <span>{{ msg }}</span>
+      </p>
+    }
+  </div>
+</section>
+

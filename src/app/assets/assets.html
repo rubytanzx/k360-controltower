@@ -1,0 +1,426 @@
+<header class="page-header">
+  @if (tab() === 'collections') {
+    <div>
+      <h1 class="title">Knowledge Collections</h1>
+      <p class="subtitle">Content coverage, freshness &amp; demand alignment</p>
+    </div>
+  } @else {
+    <h1 class="title">Assets Overview</h1>
+  }
+</header>
+
+<nav class="tabs">
+  <button
+    class="tab"
+    [class.is-active]="tab() === 'agents'"
+    (click)="setTab('agents')"
+  >Agents</button>
+  <button
+    class="tab"
+    [class.is-active]="tab() === 'collections'"
+    (click)="setTab('collections')"
+  >Ingested Collections</button>
+</nav>
+
+@if (tab() === 'collections') {
+  <section class="kc-kpi-grid">
+    @for (k of collectionKpis; track k.title) {
+      <article class="kc-kpi" [attr.data-tone]="k.tone">
+        <header class="kc-kpi-head">
+          <span class="kc-kpi-title">{{ k.title }}</span>
+          <span class="kc-kpi-icon">
+            <tabler-icon [icon]="k.icon" [size]="18" />
+          </span>
+        </header>
+        <div class="kc-kpi-row">
+          <span class="kc-kpi-value">{{ k.value }}</span>
+          <span class="kc-kpi-sub">{{ k.sub }}</span>
+        </div>
+        <div class="kc-kpi-bar">
+          <div class="kc-kpi-bar-fill" [style.width.%]="k.pct"></div>
+        </div>
+      </article>
+    }
+  </section>
+
+  <section class="inventory-card">
+    <header class="inventory-head">
+      <h2 class="inventory-title">Collection Registry</h2>
+
+      <div class="inventory-filters">
+        <div class="filter" [class.is-open]="statusOpen()">
+          <button
+            class="filter-trigger"
+            type="button"
+            (click)="toggleStatusOpen()"
+          >
+            <tabler-icon icon="check" [size]="14" />
+            <span class="filter-label">{{ statusFilterLabel() }}</span>
+            <tabler-icon icon="chevron-down" [size]="14" class="caret" />
+          </button>
+          @if (statusOpen()) {
+            <div class="dropdown-backdrop" (click)="closeStatusFilter()"></div>
+            <div class="dropdown list-dropdown" role="listbox" style="min-width: 200px;">
+              @for (o of statusOptions; track o.id) {
+                <button
+                  type="button"
+                  class="dropdown-item"
+                  [class.is-active]="statusFilter() === o.id"
+                  (click)="pickStatus(o.id)"
+                >
+                  <span class="item-text">{{ o.label }}</span>
+                  @if (statusFilter() === o.id) {
+                    <tabler-icon icon="check" [size]="14" />
+                  }
+                </button>
+              }
+            </div>
+          }
+        </div>
+
+        <button
+          class="quick-chip"
+          [class.is-active]="activeChip() === 'high-demand'"
+          (click)="toggleChip('high-demand')"
+        >High Demand</button>
+        <button
+          class="quick-chip is-danger"
+          [class.is-active]="activeChip() === 'outdated'"
+          (click)="toggleChip('outdated')"
+        >Outdated (3)</button>
+        <button
+          class="quick-chip"
+          [class.is-active]="activeChip() === 'newly-ingested'"
+          (click)="toggleChip('newly-ingested')"
+        >Newly Ingested</button>
+      </div>
+    </header>
+
+    <table class="inventory-table">
+      <thead>
+        <tr>
+          <th class="col-name">Collection</th>
+          <th class="col-type">Type</th>
+          <th class="col-cov">Coverage</th>
+          <th class="col-sync">Last Synced</th>
+          <th class="col-demand">Demand</th>
+          <th class="col-actions"></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (c of filteredCollections(); track c.name) {
+          <tr class="collection-row" (click)="openCollectionDrawer(c)">
+            <td class="col-name">
+              <div class="name-cell">
+                <span class="name-icon" [attr.data-type]="c.type">
+                  <tabler-icon [icon]="c.icon" [size]="18" />
+                </span>
+                <div>
+                  <div class="name-main">{{ c.name }}</div>
+                  <div class="name-sub" [attr.data-status]="c.status">
+                    {{ statusLabel(c.status) }}
+                  </div>
+                </div>
+              </div>
+            </td>
+            <td class="col-type">{{ c.type }}</td>
+            <td class="col-cov">
+              <div class="cov-cell">
+                <span class="cov-pct">{{ c.coverage }}%</span>
+                <div class="cov-bar">
+                  <div
+                    class="cov-bar-fill"
+                    [attr.data-tier]="c.coverage >= 80 ? 'good' : c.coverage >= 40 ? 'warn' : 'bad'"
+                    [style.width.%]="c.coverage"
+                  ></div>
+                </div>
+              </div>
+            </td>
+            <td class="col-sync">
+              <span class="sync-label" [attr.data-freshness]="c.freshness">
+                {{ c.lastSynced }}
+              </span>
+            </td>
+            <td class="col-demand">
+              <span class="demand-pill" [attr.data-demand]="c.demand">
+                {{ demandLabel(c.demand) }}
+              </span>
+            </td>
+            <td class="col-actions">
+              <button
+                class="row-action"
+                aria-label="More"
+                (click)="$event.stopPropagation()"
+              >
+                <tabler-icon icon="dots-vertical" [size]="16" />
+              </button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+
+    <footer class="inventory-foot">
+      <span class="pager-info">
+        Showing 1-{{ filteredCollections().length }} of {{ collectionsTotal }} collections
+      </span>
+      <div class="pager">
+        <button class="pager-btn" aria-label="Previous">
+          <tabler-icon icon="chevron-left" [size]="14" />
+        </button>
+        <button class="pager-btn is-active">1</button>
+        <button class="pager-btn">2</button>
+        <button class="pager-btn">3</button>
+        <span class="pager-ellipsis">…</span>
+        <button class="pager-btn" aria-label="Next">
+          <tabler-icon icon="chevron-right" [size]="14" />
+        </button>
+      </div>
+    </footer>
+  </section>
+}
+
+@if (tab() === 'agents') {
+<section class="canvas-card">
+  <header class="canvas-toolbar">
+    <div class="summary-pills">
+      <span class="summary-pill total">
+        <tabler-icon icon="users" [size]="14" />
+        {{ summaryLabel() }}
+        <span class="pill-dot info"></span>{{ current().agentsCount }}
+      </span>
+      <span class="summary-pill">
+        <span class="pill-dot good"></span>{{ current().highCount }} High
+      </span>
+      <span class="summary-pill">
+        <span class="pill-dot warn"></span>{{ current().mediumCount }} Medium
+      </span>
+      <span class="summary-pill">
+        <span class="pill-dot bad"></span>{{ current().lowCount }} Low
+      </span>
+      <span class="last-synced">
+        <tabler-icon icon="refresh" [size]="14" />Last Synced: 2m ago
+      </span>
+    </div>
+  </header>
+
+  <div
+    class="canvas-wrap"
+    [class.is-dragging]="dragging()"
+    [style.background-position]="bgPosition()"
+    [style.background-size]="bgSize()"
+    (mousedown)="onCanvasMouseDown($event)"
+    (mousemove)="onCanvasMouseMove($event)"
+    (mouseup)="onCanvasMouseUp()"
+    (mouseleave)="onCanvasMouseUp()"
+    (wheel)="onWheel($event)"
+  >
+    <div class="canvas-controls" (mousedown)="$event.stopPropagation()" (wheel)="$event.stopPropagation()">
+      <button type="button" (click)="resetView()" aria-label="Reset view">
+        <tabler-icon icon="arrows-move" [size]="18" />
+      </button>
+      <button type="button" (click)="zoomIn()" aria-label="Zoom in">
+        <tabler-icon icon="plus" [size]="18" />
+      </button>
+      <button type="button" (click)="zoomOut()" aria-label="Zoom out">
+        <tabler-icon icon="minus" [size]="18" />
+      </button>
+    </div>
+
+    <div
+      class="canvas"
+      [style.width.px]="viewW"
+      [style.height.px]="viewH"
+      [style.transform]="transform()"
+    >
+      <svg
+        class="canvas-lines"
+        [attr.viewBox]="'0 0 ' + viewW + ' ' + viewH"
+        preserveAspectRatio="none"
+      >
+        @for (line of lines(); track line.key) {
+          <path
+            [attr.d]="line.d"
+            fill="none"
+            stroke="#2c4060"
+            stroke-width="1.4"
+          />
+        }
+      </svg>
+
+      @for (n of current().nodes; track n.id) {
+        <article
+          class="node"
+          [attr.data-usage]="n.usage"
+          [class.has-warning-warning]="n.warning?.severity === 'warning'"
+          [class.has-warning-danger]="n.warning?.severity === 'danger'"
+          [style.left.px]="n.x"
+          [style.top.px]="n.y"
+          [style.width.px]="cardW"
+          (mousedown)="$event.stopPropagation()"
+        >
+          <header class="node-head">
+            <span class="usage-dot" [attr.data-usage]="n.usage"></span>
+            <span class="usage-label">
+              {{ n.usage === 'high' ? 'High Usage' : n.usage === 'medium' ? 'Medium Usage' : 'Low Usage' }}
+            </span>
+          </header>
+
+          <div class="node-body">
+            <tabler-icon
+              [icon]="n.level === 'leaf' ? 'book-2' : 'user'"
+              [size]="14"
+            />
+            <span class="node-label">{{ n.label }}</span>
+          </div>
+
+          @if (n.warning) {
+            <span
+              class="warning-chip"
+              [attr.data-severity]="n.warning.severity"
+            >
+              <span class="chip-dot"></span>{{ n.warning.text }}
+            </span>
+          }
+
+          <a class="node-review">
+            Review <tabler-icon icon="chevron-right" [size]="14" />
+          </a>
+        </article>
+      }
+    </div>
+  </div>
+</section>
+}
+
+<!-- Collection Details drawer -->
+@if (collectionDrawerOpen() && collectionDetails(); as d) {
+  <div
+    class="drawer-backdrop"
+    (click)="closeCollectionDrawer()"
+    (keydown.escape)="closeCollectionDrawer()"
+  ></div>
+  <aside
+    class="cd-drawer"
+    role="dialog"
+    [class.is-expanded]="collectionDrawerExpanded()"
+    [class.is-resizing]="isCollectionResizing()"
+    [style.width.px]="collectionDrawerExpanded() ? null : collectionDrawerWidth()"
+    [attr.aria-label]="d.name + ' details'"
+  >
+    <div
+      class="drawer-resizer"
+      (mousedown)="onCollectionResizeStart($event)"
+      role="separator"
+      aria-label="Resize drawer"
+    >
+      <span class="resizer-grip"></span>
+    </div>
+
+    <header class="cd-head">
+      <h2 class="cd-head-title">Collection Details</h2>
+      <div class="cd-head-actions">
+        <button
+          type="button"
+          [attr.aria-label]="collectionDrawerExpanded() ? 'Collapse' : 'Expand'"
+          (click)="toggleCollectionDrawerExpand()"
+        >
+          <tabler-icon
+            [icon]="collectionDrawerExpanded() ? 'arrows-move' : 'maximize'"
+            [size]="18"
+          />
+        </button>
+        <button type="button" aria-label="Close" (click)="closeCollectionDrawer()">
+          <tabler-icon icon="x" [size]="18" />
+        </button>
+      </div>
+    </header>
+
+    <div class="cd-body">
+      <section class="cd-identity">
+        <span class="cd-identity-icon">
+          <tabler-icon [icon]="d.icon" [size]="22" />
+        </span>
+        <div class="cd-identity-text">
+          <h3 class="cd-name">{{ d.name }}</h3>
+          <p class="cd-id">ID: <span>{{ d.id }}</span></p>
+          <div class="cd-badges">
+            <span class="cd-risk-badge" [attr.data-risk]="d.risk">{{ riskLabel(d.risk) }}</span>
+            @for (s of d.sources; track s) {
+              <span class="cd-source-badge">{{ s }}</span>
+            }
+          </div>
+        </div>
+      </section>
+
+      <section class="cd-metric-grid">
+        <article class="cd-metric">
+          <span class="cd-metric-title">Total Files</span>
+          <span class="cd-metric-value">{{ d.totalFiles.toLocaleString() }}</span>
+        </article>
+        <article class="cd-metric">
+          <span class="cd-metric-title">Retrieval %</span>
+          <span class="cd-metric-value danger">
+            {{ d.retrievalPct }}%
+            <span class="cd-metric-sub">({{ d.retrievalCount }})</span>
+          </span>
+        </article>
+        <article class="cd-metric">
+          <span class="cd-metric-title">Average Citation Coverage</span>
+          <span class="cd-metric-value">{{ d.citationCoverage }}%</span>
+        </article>
+        <article class="cd-metric">
+          <span class="cd-metric-title">Prompt Dependency</span>
+          <span class="cd-metric-value">
+            {{ d.promptDependency }}%
+            <span class="cd-metric-sub">prompts rely on this collection</span>
+          </span>
+        </article>
+      </section>
+
+      <section class="cd-section">
+        <h4 class="cd-section-title">Top Prompt Types</h4>
+        <ul class="cd-prompt-list">
+          @for (p of d.topPromptTypes; track p.text) {
+            <li class="cd-prompt-row">
+              <span class="cd-prompt-text">&ldquo;{{ p.text }}&rdquo;</span>
+              <div class="cd-prompt-meta">
+                <span class="cd-prompt-freq">Freq: {{ p.freq }}</span>
+                <span class="cd-prompt-score">Score: {{ p.score.toFixed(2) }}</span>
+              </div>
+            </li>
+          }
+        </ul>
+      </section>
+
+      <section class="cd-section">
+        <h4 class="cd-section-title">Top Negative Feedback</h4>
+        <div class="cd-neg-tags">
+          @for (n of d.topNegative; track n.label) {
+            <span class="cd-neg-tag">
+              {{ n.label }}<span class="cd-neg-freq">Freq: {{ n.freq }}</span>
+            </span>
+          }
+        </div>
+      </section>
+
+      <section class="cd-section">
+        <h4 class="cd-section-title">Governance Actions</h4>
+        <ul class="cd-actions">
+          @for (a of d.governance; track a.label) {
+            <li>
+              <button
+                type="button"
+                class="cd-action"
+                [class.is-primary]="a.intent === 'primary'"
+              >
+                <span>{{ a.label }}</span>
+                <tabler-icon [icon]="a.icon" [size]="18" />
+              </button>
+            </li>
+          }
+        </ul>
+      </section>
+    </div>
+  </aside>
+}

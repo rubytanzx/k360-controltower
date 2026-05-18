@@ -1,0 +1,387 @@
+:root {
+  --bg-app: #0a1729;
+  --bg-sidebar: #050d1c;
+  --bg-card: #122036;
+  --bg-card-2: #0e1b2e;
+  --bg-elevated: #1a2941;
+  --border: #1f3050;
+  --border-soft: #15243c;
+  --text: #e6eef8;
+  --text-dim: #93a8c4;
+  --text-faint: #5d7591;
+  --accent: #00d4ff;
+  --accent-strong: #1ad6ff;
+  --accent-dim: #0892b3;
+  --success: #4ade80;
+  --warning: #fb923c;
+  --danger: #ef4444;
+  --purple: #a855f7;
+  --pink: #ec4899;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  background: var(--bg-app);
+  color: var(--text);
+  font-family: 'Roboto', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+body { min-height: 100vh; }
+
+a { color: var(--accent); text-decoration: none; }
+
+button { font-family: inherit; }
+
+/* Tabler icon baseline — make svgs inline-flex aligned with text */
+tabler-icon {
+  display: inline-flex;
+  line-height: 0;
+}
+
+/* -------- shared filter bar chrome -------- */
+.filter {
+  position: relative;
+}
+
+.filter-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-soft);
+  border-radius: 8px;
+  color: var(--text-dim);
+  font-family: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.filter-trigger:hover {
+  border-color: var(--border);
+  background: var(--bg-elevated);
+}
+
+.filter.is-open .filter-trigger {
+  border-color: var(--accent);
+  background: var(--bg-elevated);
+  color: var(--text);
+}
+
+.filter-trigger .filter-label { color: var(--text-faint); }
+.filter-trigger .filter-value { color: var(--text); font-weight: 500; }
+.filter-trigger .caret { transition: transform 0.15s ease; }
+.filter.is-open .filter-trigger .caret { transform: rotate(180deg); }
+
+.filter-actions {
+  display: inline-flex;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.filter-actions button {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-soft);
+  color: var(--text-dim);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+
+.filter-actions button:hover {
+  color: var(--text);
+  border-color: var(--border);
+  background: var(--bg-elevated);
+}
+
+.dropdown-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: transparent;
+}
+
+.dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 50;
+  min-width: 240px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+  padding: 8px;
+}
+
+.range-dropdown { width: 300px; padding: 14px; }
+
+.range-mode {
+  display: inline-flex;
+  background: var(--bg-elevated);
+  border-radius: 999px;
+  padding: 3px;
+  margin-bottom: 14px;
+}
+
+.range-mode button {
+  background: transparent;
+  border: none;
+  color: var(--text-dim);
+  padding: 6px 16px;
+  font-size: 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.range-mode button.is-active {
+  background: var(--accent);
+  color: #061827;
+  font-weight: 600;
+}
+
+.year-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 4px;
+  margin-bottom: 10px;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.year-nav button {
+  background: transparent;
+  border: none;
+  color: var(--text-dim);
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.year-nav button:hover { background: var(--bg-elevated); color: var(--text); }
+
+.month-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+.year-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
+
+.month-grid button,
+.year-grid button {
+  background: transparent;
+  border: none;
+  color: var(--text);
+  padding: 9px 0;
+  font-size: 13px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.month-grid button:hover,
+.year-grid button:hover { background: var(--bg-elevated); }
+
+.month-grid button.is-active,
+.year-grid button.is-active {
+  background: var(--accent);
+  color: #061827;
+  font-weight: 600;
+}
+
+.list-dropdown {
+  width: 320px;
+  max-height: 360px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.region-dropdown { width: 300px; }
+
+.dropdown-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--border-soft);
+  background: rgba(0, 0, 0, 0.25);
+  flex: 0 0 auto;
+}
+
+.dropdown-search tabler-icon {
+  color: var(--text-faint);
+  flex: 0 0 auto;
+}
+
+.dropdown-search input {
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 13px;
+  padding: 2px 0;
+}
+
+.dropdown-search input::placeholder {
+  color: var(--text-faint);
+}
+
+.dropdown-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+}
+
+.dropdown-empty {
+  margin: 18px 12px;
+  font-size: 12px;
+  color: var(--text-faint);
+  text-align: center;
+  line-height: 1.5;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  background: transparent;
+  border: none;
+  color: var(--text);
+  padding: 9px 10px;
+  font-size: 13px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  line-height: 1.3;
+}
+
+.dropdown-item:hover { background: var(--bg-elevated); }
+
+.dropdown-item.is-active {
+  background: rgba(0, 212, 255, 0.08);
+  color: var(--text);
+}
+
+.dropdown-item .item-text { flex: 1; min-width: 0; }
+
+.dropdown-item .region-code {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  height: 20px;
+  border-radius: 4px;
+  background: var(--bg-elevated);
+  color: var(--text-dim);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  padding: 0 6px;
+  flex: 0 0 auto;
+}
+
+.dropdown-item.is-active .region-code {
+  background: var(--accent);
+  color: #061827;
+}
+
+.dropdown-item tabler-icon {
+  color: var(--accent);
+  flex: 0 0 auto;
+}
+
+.dropdown-section {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  /* Negative side margins make the header bar stretch to the dropdown body's padded edges */
+  margin: 10px -8px 4px;
+  padding: 8px 14px;
+  background: var(--bg-card);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border-soft);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--text);
+  position: sticky;
+  top: -8px;
+  z-index: 1;
+}
+
+.dropdown-section:first-of-type {
+  margin-top: 6px;
+  border-top: none;
+}
+
+.dropdown-section-code {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  height: 20px;
+  border-radius: 4px;
+  background: var(--bg-elevated);
+  color: var(--text-dim);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  padding: 0 7px;
+}
+
+.dropdown-section-code[data-region='AFR'] { background: rgba(251, 146, 60, 0.20); color: #fdba74; }
+.dropdown-section-code[data-region='EAP'] { background: rgba(74, 222, 128, 0.20);  color: #86efac; }
+.dropdown-section-code[data-region='ECA'] { background: rgba(44, 138, 255, 0.20);  color: #93c5fd; }
+.dropdown-section-code[data-region='LAC'] { background: rgba(236, 72, 153, 0.20);  color: #f9a8d4; }
+.dropdown-section-code[data-region='MNA'] { background: rgba(168, 85, 247, 0.20);  color: #d8b4fe; }
+.dropdown-section-code[data-region='SAR'] { background: rgba(34, 211, 238, 0.20);  color: #67e8f9; }
+
+.dropdown-section-label {
+  flex: 1;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--text);
+  font-weight: 500;
+  font-size: 12px;
+}
+
+.dropdown-section-count {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0;
+  color: var(--text-faint);
+  padding: 2px 7px;
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 999px;
+  text-transform: none;
+}
+
+.country-dropdown {
+  width: 340px;
+}
+
+/* Slight indent so countries read as "inside" the region group */
+.country-dropdown .dropdown-item .item-text {
+  padding-left: 6px;
+}
