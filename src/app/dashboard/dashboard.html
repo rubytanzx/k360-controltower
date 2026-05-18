@@ -200,42 +200,6 @@
   }
 </section>
 
-<section class="row2-grid">
-  <article class="card agents-card">
-    <header class="lower-head">
-      <div class="title-wrap">
-        <tabler-icon icon="robot" [size]="18" />
-        <span class="lower-title">Agents Active</span>
-      </div>
-      <a class="view-link" routerLink="/assets" [queryParams]="{ tab: 'agents' }">
-        View <tabler-icon icon="chevron-right" [size]="16" />
-      </a>
-    </header>
-    <div class="agents-count-body">
-      <span class="agents-count-value">{{ agentsActive }}</span>
-      <span class="agents-count-sub">agents deployed</span>
-    </div>
-  </article>
-
-  <article class="card ingested-card">
-    <header class="lower-head">
-      <div class="title-wrap">
-        <tabler-icon icon="database" [size]="18" />
-        <span class="lower-title">Ingested Collections</span>
-      </div>
-      <a class="view-link" routerLink="/assets" [queryParams]="{ tab: 'collections' }">
-        View <tabler-icon icon="chevron-right" [size]="16" />
-      </a>
-    </header>
-    <div class="ingested-body">
-      <span class="ingested-value">{{ ingested.value }}</span>
-      <span class="ingested-delta">
-        <tabler-icon icon="arrow-up" [size]="14" />{{ ingested.delta }}
-      </span>
-    </div>
-  </article>
-</section>
-
 <section class="card thematic-card">
   <header class="lower-head">
     <div class="title-wrap">
