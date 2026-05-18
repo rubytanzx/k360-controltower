@@ -510,11 +510,12 @@
 .inventory-table tbody tr:hover { background: rgba(255, 255, 255, 0.02); }
 
 /* column widths */
-.col-name    { width: 28%; }
+.col-name    { width: 24%; }
 .col-type    { width: 12%; }
-.col-cov     { width: 18%; }
+.col-cov     { width: 16%; }
+.col-util    { width: 16%; }
 .col-sync    { width: 12%; }
-.col-demand  { width: 14%; }
+.col-demand  { width: 12%; }
 .col-actions { width: 6%; text-align: right; }
 
 /* name cell */

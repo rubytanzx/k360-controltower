@@ -1,12 +1,5 @@
 <header class="page-header">
-  @if (tab() === 'collections') {
-    <div>
-      <h1 class="title">Knowledge Collections</h1>
-      <p class="subtitle">Content coverage, freshness &amp; demand alignment</p>
-    </div>
-  } @else {
-    <h1 class="title">Assets Overview</h1>
-  }
+  <h1 class="title">Assets Overview</h1>
 </header>
 
 <div class="uptime-bar">
@@ -114,6 +107,7 @@
         <tr>
           <th class="col-name">Collection</th>
           <th class="col-cov">Coverage</th>
+          <th class="col-util">Source Utilisation</th>
           <th class="col-sync">Last Synced</th>
           <th class="col-demand">Demand</th>
           <th class="col-actions"></th>
@@ -143,6 +137,18 @@
                     class="cov-bar-fill"
                     [attr.data-tier]="c.coverage >= 80 ? 'good' : c.coverage >= 40 ? 'warn' : 'bad'"
                     [style.width.%]="c.coverage"
+                  ></div>
+                </div>
+              </div>
+            </td>
+            <td class="col-util">
+              <div class="cov-cell">
+                <span class="cov-pct">{{ c.sourceUtilisation }}%</span>
+                <div class="cov-bar">
+                  <div
+                    class="cov-bar-fill"
+                    [attr.data-tier]="c.sourceUtilisation >= 75 ? 'good' : c.sourceUtilisation >= 50 ? 'warn' : 'bad'"
+                    [style.width.%]="c.sourceUtilisation"
                   ></div>
                 </div>
               </div>
