@@ -11,10 +11,12 @@
 <section class="kpi-grid">
   @for (k of kpis; track k.title; let i = $index) {
     <article class="card kpi-card" [attr.data-variant]="k.variant" [attr.data-tone]="k.tone">
-      <header class="kpi-head">
-        <span class="kpi-title">{{ k.title }}</span>
-        <tabler-icon class="info" icon="info-circle" [size]="14" />
-      </header>
+      @if (k.variant !== 'metric') {
+        <header class="kpi-head">
+          <span class="kpi-title">{{ k.title }}</span>
+          <tabler-icon class="info" icon="info-circle" [size]="14" />
+        </header>
+      }
 
       @switch (k.variant) {
         @case ('sparkline') {

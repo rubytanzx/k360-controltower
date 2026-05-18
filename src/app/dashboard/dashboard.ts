@@ -56,11 +56,9 @@ export class Dashboard {
     },
     {
       title: 'Staff Adoption',
-      variant: 'metric',
-      icon: 'users',
-      tone: 'cyan',
+      variant: 'arc',
       value: '67%',
-      sub: 'of WBG staff actively using K360',
+      sub: 'of WBG staff',
       arcPct: 67,
     },
     {
