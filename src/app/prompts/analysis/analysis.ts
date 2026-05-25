@@ -150,7 +150,7 @@ export class Analysis {
       // Reference: Adobe Analytics #1 prompt was "What are the main challenges
       // facing Ghana's economic growth and productivity?" (56 occurrences).
       // Subcategory totals below sum to 179 — matches primaryCount exactly.
-      name: 'Ghana Economic Growth',
+      name: 'Macroeconomic Research',
       updatedAgo: '2 hours ago',
       primaryTitle: 'Total No. of Prompts',
       primaryCount: 179, primaryDeltaPct: 12,
@@ -225,7 +225,7 @@ export class Analysis {
     exp: {
       id: 'exp',
       domain: 'people',
-      name: 'Energy Sector Experts',
+      name: 'Expert & People Discovery',
       updatedAgo: '2 hours ago',
       primaryTitle: 'Total Searches',
       primaryCount: 64, primaryDeltaPct: 8,
@@ -280,7 +280,7 @@ export class Analysis {
     tor: {
       id: 'tor',
       domain: 'tasks',
-      name: 'TOR Generation — Climate',
+      name: 'Document & TOR Generation',
       updatedAgo: '2 hours ago',
       primaryTitle: 'Total Generations',
       primaryCount: 142, primaryDeltaPct: 18,
@@ -336,7 +336,7 @@ export class Analysis {
     'cli-adapt': {
       id: 'cli-adapt',
       domain: 'knowledge',
-      name: 'Climate Adaptation',
+      name: 'Climate Adaptation & Resilience',
       updatedAgo: '3 hours ago',
       primaryTitle: 'Total No. of Prompts',
       primaryCount: 142, primaryDeltaPct: 18,
@@ -395,7 +395,7 @@ export class Analysis {
     'water-infra': {
       id: 'water-infra',
       domain: 'knowledge',
-      name: 'Water Infrastructure',
+      name: 'Water & Infrastructure',
       updatedAgo: '4 hours ago',
       primaryTitle: 'Total No. of Prompts',
       primaryCount: 118, primaryDeltaPct: 9,
@@ -454,7 +454,7 @@ export class Analysis {
     'agri-resil': {
       id: 'agri-resil',
       domain: 'knowledge',
-      name: 'Agriculture Resilience',
+      name: 'Agricultural Resilience',
       updatedAgo: '5 hours ago',
       primaryTitle: 'Total No. of Prompts',
       primaryCount: 96, primaryDeltaPct: 14,
