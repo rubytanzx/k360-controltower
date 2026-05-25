@@ -32,6 +32,7 @@ interface TreemapTopic {
   count: number;
   color: string;
   trending?: boolean;
+  prompts?: string[];
 }
 
 interface FrictionSignal {
@@ -98,6 +99,7 @@ export class Prompts {
     { id: 'tasks' as KptTab, label: 'Tasks' },
   ];
   readonly activeTab = signal<KptTab>('knowledge');
+  readonly hoveredTopic = signal<TreemapTopic | null>(null);
 
   // ---- Toggle: By Volume / By Repeat Rate ----
   readonly tmMode = signal<TmMode>('volume');
@@ -106,69 +108,95 @@ export class Prompts {
   // ---- Treemap data (one matrix per tab) ----
   private readonly knowledgeByVolume: TreemapTopic[][] = [
     [
-      { id: 'eg',  name: 'Ghana Economic Growth',     pct: 28, count: 79, color: '#2c8aff' },
-      { id: 'ml',  name: 'Morocco Labor Markets',     pct: 17, count: 47, color: '#a855f7', trending: true },
-      { id: 'oth', name: 'Other',                     pct: 14, count: 40, color: '#5d6b7e' },
+      { id: 'eg',  name: 'Ghana Economic Growth',     pct: 28, count: 79, color: '#2c8aff',
+        prompts: ['What are the latest GDP trends for Ghana?', 'Compare poverty indicators across Ghana regions', 'Summarize World Bank projects in Ghana 2022–2024'] },
+      { id: 'ml',  name: 'Morocco Labor Markets',     pct: 17, count: 47, color: '#a855f7', trending: true,
+        prompts: ['Youth unemployment trends in Morocco', 'Impact of informal sector on Moroccan labor market', 'Skills gap analysis for Morocco industrial zones'] },
+      { id: 'oth', name: 'Other',                     pct: 14, count: 40, color: '#5d6b7e',
+        prompts: ['Cross-cutting country diagnostic questions', 'Ad-hoc operational queries', 'General knowledge base searches'] },
     ],
     [
-      { id: 'exp', name: 'Expertise / People Search', pct: 13, count: 37, color: '#f59e0b' },
-      { id: 'cli', name: 'Climate & Infrastructure',  pct: 11, count: 31, color: '#22d3ee' },
-      { id: 'les', name: 'Lessons Explorer',          pct: 9,  count: 26, color: '#14b8a6' },
-      { id: 'hf',  name: 'Housing & Finance',         pct: 8,  count: 22, color: '#ec4899' },
+      { id: 'exp', name: 'Expertise / People Search', pct: 13, count: 37, color: '#f59e0b',
+        prompts: ['Who are our experts on Ghanaian economic policy?', 'Find specialists in North Africa labor markets', 'Staff with urban development experience in MNA'] },
+      { id: 'cli', name: 'Climate & Infrastructure',  pct: 11, count: 31, color: '#22d3ee',
+        prompts: ['Climate finance flows in West Africa', 'Renewable energy transition in Morocco', 'Infrastructure resilience for coastal Ghana'] },
+      { id: 'les', name: 'Lessons Explorer',          pct: 9,  count: 26, color: '#14b8a6',
+        prompts: ['Lessons from fiscal reform programs in Ghana', 'What worked in labor market interventions in MNA?', 'Implementation lessons from infrastructure projects'] },
+      { id: 'hf',  name: 'Housing & Finance',         pct: 8,  count: 22, color: '#ec4899',
+        prompts: ['Housing finance gaps in Sub-Saharan Africa', 'Mortgage market conditions in Morocco', 'Affordable housing policy in urban Ghana'] },
     ],
   ];
 
   private readonly knowledgeByRepeat: TreemapTopic[][] = [
     [
-      { id: 'eg',  name: 'Ghana Economic Growth',     pct: 32, count: 56, color: '#2c8aff' },
-      { id: 'oth', name: 'Other',                     pct: 18, count: 32, color: '#5d6b7e' },
-      { id: 'ml',  name: 'Morocco Labor Markets',     pct: 14, count: 24, color: '#a855f7' },
+      { id: 'eg',  name: 'Ghana Economic Growth',     pct: 32, count: 56, color: '#2c8aff',
+        prompts: ['Recurring GDP tracking queries for Ghana', 'Monthly poverty indicator updates', 'Follow-up on macroeconomic stabilisation program'] },
+      { id: 'oth', name: 'Other',                     pct: 18, count: 32, color: '#5d6b7e',
+        prompts: ['Repeated cross-cutting operational queries', 'Recurring country diagnostic requests', 'Frequently asked general knowledge questions'] },
+      { id: 'ml',  name: 'Morocco Labor Markets',     pct: 14, count: 24, color: '#a855f7',
+        prompts: ['Monthly youth unemployment monitoring', 'Recurring informal sector analysis', 'Follow-up on Morocco skills development program'] },
     ],
     [
-      { id: 'cli', name: 'Climate & Infrastructure',  pct: 12, count: 21, color: '#22d3ee' },
-      { id: 'exp', name: 'Expertise / People Search', pct: 10, count: 18, color: '#f59e0b' },
-      { id: 'les', name: 'Lessons Explorer',          pct: 8,  count: 14, color: '#14b8a6' },
-      { id: 'hf',  name: 'Housing & Finance',         pct: 6,  count: 11, color: '#ec4899' },
+      { id: 'cli', name: 'Climate & Infrastructure',  pct: 12, count: 21, color: '#22d3ee',
+        prompts: ['Recurring climate finance flow queries', 'Monthly energy transition status updates', 'Follow-up on infrastructure resilience assessments'] },
+      { id: 'exp', name: 'Expertise / People Search', pct: 10, count: 18, color: '#f59e0b',
+        prompts: ['Repeated expert directory lookups by sector', 'Regular staff capability queries', 'Recurring team composition requests for operations'] },
+      { id: 'les', name: 'Lessons Explorer',          pct: 8,  count: 14, color: '#14b8a6',
+        prompts: ['Repeated lessons queries for reform programs', 'Recurring intervention effectiveness searches', 'Follow-up on project completion findings'] },
+      { id: 'hf',  name: 'Housing & Finance',         pct: 6,  count: 11, color: '#ec4899',
+        prompts: ['Monthly housing finance market updates', 'Recurring mortgage market indicator queries', 'Follow-up on affordable housing program results'] },
     ],
   ];
 
   private readonly peopleByVolume: TreemapTopic[][] = [
     [
-      { id: 'exp',  name: 'Expertise Search by Sector', pct: 45, count: 37, color: '#a855f7' },
+      { id: 'exp',  name: 'Expertise Search by Sector', pct: 45, count: 37, color: '#a855f7',
+        prompts: ['Find climate specialists in EAP', 'Who leads our education work in SSA?', 'Staff experienced in digital government reforms'] },
     ],
     [
-      { id: 'peer', name: 'Peer Review Requests',       pct: 30, count: 24, color: '#c4b5fd' },
-      { id: 'cel',  name: 'Country Expert Locator',     pct: 25, count: 20, color: '#22d3ee' },
+      { id: 'peer', name: 'Peer Review Requests',       pct: 30, count: 24, color: '#c4b5fd',
+        prompts: ['Request peer review for infrastructure assessment', 'Who can review this poverty analysis?', 'Find peer reviewers for financial sector report'] },
+      { id: 'cel',  name: 'Country Expert Locator',     pct: 25, count: 20, color: '#22d3ee',
+        prompts: ['Experts currently working in Kenya', 'Who has experience in Morocco education sector?', 'Find country specialists for Ghana portfolio review'] },
     ],
   ];
 
   private readonly peopleByRepeat: TreemapTopic[][] = [
     [
-      { id: 'exp',  name: 'Expertise Search by Sector', pct: 50, count: 22, color: '#a855f7' },
+      { id: 'exp',  name: 'Expertise Search by Sector', pct: 50, count: 22, color: '#a855f7',
+        prompts: ['Recurring sector specialist lookups', 'Repeated education expert directory queries', 'Regular governance specialist searches'] },
     ],
     [
-      { id: 'cel',  name: 'Country Expert Locator',     pct: 28, count: 12, color: '#22d3ee' },
-      { id: 'peer', name: 'Peer Review Requests',       pct: 22, count: 10, color: '#c4b5fd' },
+      { id: 'cel',  name: 'Country Expert Locator',     pct: 28, count: 12, color: '#22d3ee',
+        prompts: ['Repeated country expert lookups for Kenya', 'Regular Morocco portfolio specialist queries', 'Recurring Ghana country team searches'] },
+      { id: 'peer', name: 'Peer Review Requests',       pct: 22, count: 10, color: '#c4b5fd',
+        prompts: ['Recurring peer reviewer requests for sector reports', 'Repeated quality review panel lookups', 'Regular technical review team queries'] },
     ],
   ];
 
   private readonly tasksByVolume: TreemapTopic[][] = [
     [
-      { id: 'tor', name: 'TOR Generation',                  pct: 48, count: 47, color: '#38bdf8' },
+      { id: 'tor', name: 'TOR Generation',                  pct: 48, count: 47, color: '#38bdf8',
+        prompts: ['Draft a TOR for a public expenditure review', 'Generate scope of work for private sector assessment', 'TOR template for an education sector loan'] },
     ],
     [
-      { id: 'syn', name: 'Synthesis & Research Generation', pct: 30, count: 29, color: '#22d3ee' },
-      { id: 'doc', name: 'Document & Portfolio Analysis',   pct: 22, count: 21, color: '#ec4899' },
+      { id: 'syn', name: 'Synthesis & Research Generation', pct: 30, count: 29, color: '#22d3ee',
+        prompts: ['Synthesize recent research on fiscal decentralization', 'Generate briefing on climate adaptation finance', 'Research summary on urban resilience interventions'] },
+      { id: 'doc', name: 'Document & Portfolio Analysis',   pct: 22, count: 21, color: '#ec4899',
+        prompts: ['Analyze the Ghana portfolio for thematic trends', 'Summarize ICR findings from last 5 operations', 'Extract lessons from project completion reports'] },
     ],
   ];
 
   private readonly tasksByRepeat: TreemapTopic[][] = [
     [
-      { id: 'tor', name: 'TOR Generation',                  pct: 52, count: 28, color: '#38bdf8' },
+      { id: 'tor', name: 'TOR Generation',                  pct: 52, count: 28, color: '#38bdf8',
+        prompts: ['Recurring TOR drafts for country operations', 'Repeated scope of work templates', 'Regular diagnostic TOR generation requests'] },
     ],
     [
-      { id: 'doc', name: 'Document & Portfolio Analysis',   pct: 26, count: 14, color: '#ec4899' },
-      { id: 'syn', name: 'Synthesis & Research Generation', pct: 22, count: 12, color: '#22d3ee' },
+      { id: 'doc', name: 'Document & Portfolio Analysis',   pct: 26, count: 14, color: '#ec4899',
+        prompts: ['Monthly portfolio performance analysis', 'Recurring completion report reviews', 'Regular thematic portfolio summaries'] },
+      { id: 'syn', name: 'Synthesis & Research Generation', pct: 22, count: 12, color: '#22d3ee',
+        prompts: ['Recurring briefing note generation', 'Repeated research synthesis on governance', 'Regular evidence summaries for country teams'] },
     ],
   ];
 

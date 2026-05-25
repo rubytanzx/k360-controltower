@@ -76,10 +76,13 @@
             <a
               class="treemap-cell"
               [class.is-trending]="t.trending"
+              [class.is-hovered]="hoveredTopic()?.id === t.id"
               [style.flex]="t.pct"
               [style.background]="t.color"
               [routerLink]="['/prompts/analysis']"
               [queryParams]="{ kpt: activeTab(), topic: t.id }"
+              (mouseenter)="hoveredTopic.set(t)"
+              (mouseleave)="hoveredTopic.set(null)"
             >
               <div class="cell-head">
                 <div class="cell-name">{{ t.name }}</div>
@@ -95,6 +98,26 @@
                 <span class="cell-dot">·</span>
                 <span class="cell-count">{{ t.count }} prompts</span>
               </div>
+
+              @if (hoveredTopic()?.id === t.id && t.prompts?.length) {
+                <div class="topic-tooltip" [attr.data-row]="rowIdx">
+                  <div class="tip-head">
+                    <span class="tip-dot" [style.background]="t.color"></span>
+                    <span class="tip-name">{{ t.name }}</span>
+                  </div>
+                  <div class="tip-meta">
+                    <span>{{ t.count }} prompts</span>
+                    <span class="dot-sep">·</span>
+                    <span>{{ t.pct }}% share</span>
+                  </div>
+                  <div class="tip-section">Top 3 example prompts</div>
+                  <ul class="tip-prompts">
+                    @for (p of t.prompts; track p) {
+                      <li>{{ p }}</li>
+                    }
+                  </ul>
+                </div>
+              }
             </a>
           }
         </div>
