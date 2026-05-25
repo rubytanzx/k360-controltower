@@ -87,15 +87,15 @@ export class Feedback {
   // count is negative responses received in this category.
   readonly flaggedCategories: FlaggedCategory[][] = [
     [
-      { id: 'eg',  name: 'Macroeconomic Research',          pct: 28, count: 79, color: '#2c8aff' },
-      { id: 'ml',  name: 'Labor & Social Policy',           pct: 17, count: 47, color: '#a855f7', trending: true },
-      { id: 'oth', name: 'General Queries',                 pct: 14, count: 40, color: '#5d6b7e' },
+      { id: 'eg',  name: 'Macroeconomic Research',          pct: 28, count: 79, color: '#c4385c' },
+      { id: 'ml',  name: 'Labor & Social Policy',           pct: 17, count: 47, color: '#d44e74', trending: true },
+      { id: 'oth', name: 'General Queries',                 pct: 14, count: 40, color: '#b85c72' },
     ],
     [
-      { id: 'exp', name: 'Expert & People Discovery',       pct: 13, count: 37, color: '#f59e0b' },
-      { id: 'cli', name: 'Climate, Energy & Infrastructure', pct: 11, count: 31, color: '#22d3ee' },
-      { id: 'les', name: 'Project Lessons & Evidence',      pct: 9,  count: 26, color: '#14b8a6' },
-      { id: 'hf',  name: 'Housing & Urban Finance',         pct: 8,  count: 22, color: '#ec4899' },
+      { id: 'exp', name: 'Expert & People Discovery',       pct: 13, count: 37, color: '#df7090' },
+      { id: 'cli', name: 'Climate, Energy & Infrastructure', pct: 11, count: 31, color: '#c8647c' },
+      { id: 'les', name: 'Project Lessons & Evidence',      pct: 9,  count: 26, color: '#da8294' },
+      { id: 'hf',  name: 'Housing & Urban Finance',         pct: 8,  count: 22, color: '#e496a6' },
     ],
   ];
 
