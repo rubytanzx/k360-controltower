@@ -98,8 +98,8 @@ export class App {
         sections: [
           { type: 'p', text: 'The negative spike is concentrated in TOR Generation (142 affected prompts).' },
           { type: 'bullets', items: [
-            'Ghana Economic Growth — 86 prompts, no dedicated collection',
-            'Expertise Search · ECA — 54 prompts, Sherlock profile gaps',
+            'Macroeconomic Research — 86 prompts, no dedicated collection',
+            'Expert & People Discovery · ECA — 54 prompts, Sherlock profile gaps',
             'Top drivers: "Not factually correct" and "Did not follow instructions" — both Tasks-tagged',
           ] },
           { type: 'p', text: 'TOR Genie has the highest weighted impact score (619). Recommend prioritising review of TOR drafting failures before broader fixes.' },
@@ -114,7 +114,7 @@ export class App {
         sections: [
           { type: 'p', text: 'Three significant content gaps surfaced this period:' },
           { type: 'bullets', items: [
-            'Ghana Economic Growth — 56 prompts, no dedicated collection',
+            'Macroeconomic Research — 56 prompts, no dedicated collection',
             'Housing Finance · LCR — 18 prompts, no dedicated collection',
             'Port Governance — 14 prompts, no dedicated collection',
           ] },

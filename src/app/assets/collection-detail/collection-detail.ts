@@ -141,14 +141,14 @@ export class CollectionDetail {
   readonly categoriesByTab: Record<KptTab, PromptCategory[]> = {
     knowledge: [
       { label: 'Flood Resilience Planning',      pct: 39, prompts: 198 },
-      { label: 'Climate Adaptation Strategies',  pct: 24, prompts: 122 },
-      { label: 'Water Infrastructure Financing', pct: 22, prompts: 112 },
+      { label: 'Climate Adaptation & Resilience Strategies', pct: 24, prompts: 122 },
+      { label: 'Water & Infrastructure Financing',            pct: 22, prompts: 112 },
       { label: 'Urban Resilience',               pct:  9, prompts:  46 },
       { label: 'Disaster Preparedness',          pct:  6, prompts:  30 },
     ],
     people: [
       { label: 'Water Resources Specialists',    pct: 48, prompts: 100 },
-      { label: 'Climate Adaptation Leads',       pct: 28, prompts:  59 },
+      { label: 'Climate Adaptation & Resilience Leads', pct: 28, prompts:  59 },
       { label: 'Hydrologists',                   pct: 12, prompts:  25 },
       { label: 'Urban Planners',                 pct:  7, prompts:  15 },
       { label: 'M&E Specialists',                pct:  5, prompts:  10 },
@@ -157,7 +157,7 @@ export class CollectionDetail {
       { label: 'TOR: Water Sector Diagnostic',   pct: 52, prompts:  66 },
       { label: 'Project Concept Notes',          pct: 22, prompts:  28 },
       { label: 'Synthesis: Drought Response',    pct: 14, prompts:  18 },
-      { label: 'Briefs: Climate Adaptation',     pct:  7, prompts:   9 },
+      { label: 'Briefs: Climate Adaptation & Resilience', pct:  7, prompts:   9 },
       { label: 'Slides: Resilience Outcomes',    pct:  5, prompts:   6 },
     ],
   };

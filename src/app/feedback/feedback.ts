@@ -87,15 +87,15 @@ export class Feedback {
   // count is negative responses received in this category.
   readonly flaggedCategories: FlaggedCategory[][] = [
     [
-      { id: 'eg',  name: 'Ghana Economic Growth',     pct: 28, count: 79, color: '#2c8aff' },
-      { id: 'ml',  name: 'Morocco Labor Markets',     pct: 17, count: 47, color: '#a855f7', trending: true },
-      { id: 'oth', name: 'Other',                     pct: 14, count: 40, color: '#5d6b7e' },
+      { id: 'eg',  name: 'Macroeconomic Research',          pct: 28, count: 79, color: '#2c8aff' },
+      { id: 'ml',  name: 'Labor & Social Policy',           pct: 17, count: 47, color: '#a855f7', trending: true },
+      { id: 'oth', name: 'General Queries',                 pct: 14, count: 40, color: '#5d6b7e' },
     ],
     [
-      { id: 'exp', name: 'Expertise / People Search', pct: 13, count: 37, color: '#f59e0b' },
-      { id: 'cli', name: 'Climate & Infrastructure',  pct: 11, count: 31, color: '#22d3ee' },
-      { id: 'les', name: 'Lessons Explorer',          pct: 9,  count: 26, color: '#14b8a6' },
-      { id: 'hf',  name: 'Housing & Finance',         pct: 8,  count: 22, color: '#ec4899' },
+      { id: 'exp', name: 'Expert & People Discovery',       pct: 13, count: 37, color: '#f59e0b' },
+      { id: 'cli', name: 'Climate, Energy & Infrastructure', pct: 11, count: 31, color: '#22d3ee' },
+      { id: 'les', name: 'Project Lessons & Evidence',      pct: 9,  count: 26, color: '#14b8a6' },
+      { id: 'hf',  name: 'Housing & Urban Finance',         pct: 8,  count: 22, color: '#ec4899' },
     ],
   ];
 
@@ -208,13 +208,13 @@ export class Feedback {
   // Intensity per (row, col). 0 = lightest, 1 = darkest red.
   // Match the mockup tones.
   private readonly heatmapDataRegion: number[][] = [
-    // LATAM: lightest, with one mid-yellow on Housing & Finance
+    // LATAM: lightest, with one mid-yellow on Housing & Urban Finance
     [0.08, 0.10, 0.10, 0.10, 0.40],
     // APAC: light yellow, with one yellow on Ghana
     [0.32, 0.10, 0.10, 0.08, 0.10],
     // EMEA: stronger pop — yellow on Climate, deep red on Expertise in Energy
     [0.10, 0.30, 0.90, 0.10, 0.10],
-    // North America: orange on Climate & Infrastructure
+    // North America: orange on Climate, Energy & Infrastructure
     [0.10, 0.55, 0.10, 0.10, 0.10],
   ];
 

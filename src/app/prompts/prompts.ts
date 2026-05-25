@@ -118,7 +118,7 @@ export class Prompts {
     [
       { id: 'exp', name: 'Expert & People Discovery', pct: 13, count: 37, color: '#f59e0b',
         prompts: ['Who are our experts on Ghanaian economic policy?', 'Find specialists in North Africa labor markets', 'Staff with urban development experience in MNA'] },
-      { id: 'cli', name: 'Climate & Resilience',      pct: 11, count: 31, color: '#22d3ee',
+      { id: 'cli', name: 'Climate, Energy & Infrastructure',      pct: 11, count: 31, color: '#22d3ee',
         prompts: ['Climate finance flows in West Africa', 'Renewable energy transition in Morocco', 'Infrastructure resilience for coastal Ghana'] },
       { id: 'les', name: 'Project Lessons & Evidence', pct: 9,  count: 26, color: '#14b8a6',
         prompts: ['Lessons from fiscal reform programs in Ghana', 'What worked in labor market interventions in MNA?', 'Implementation lessons from infrastructure projects'] },
@@ -137,7 +137,7 @@ export class Prompts {
         prompts: ['Monthly youth unemployment monitoring', 'Recurring informal sector analysis', 'Follow-up on Morocco skills development program'] },
     ],
     [
-      { id: 'cli', name: 'Climate & Resilience',      pct: 12, count: 21, color: '#22d3ee',
+      { id: 'cli', name: 'Climate, Energy & Infrastructure',      pct: 12, count: 21, color: '#22d3ee',
         prompts: ['Recurring climate finance flow queries', 'Monthly energy transition status updates', 'Follow-up on infrastructure resilience assessments'] },
       { id: 'exp', name: 'Expert & People Discovery', pct: 10, count: 18, color: '#f59e0b',
         prompts: ['Repeated expert directory lookups by sector', 'Regular staff capability queries', 'Recurring team composition requests for operations'] },
@@ -215,21 +215,21 @@ export class Prompts {
   // Captions are two short words each — they wrap to 2 lines so values align.
   readonly frictionSignals: FrictionSignal[] = [
     {
-      domain: 'knowledge', topic: 'Ghana Economic Growth', topicId: 'eg',
+      domain: 'knowledge', topic: 'Macroeconomic Research', topicId: 'eg',
       kind: 'dislike',
       metricValue: 75, metricUnit: '%', metricCaption: 'answers disliked',
       volume: 126, volumeLabel: 'prompts',
       direction: 'up', changePct: 20,
     },
     {
-      domain: 'people', topic: 'Energy Sector Experts', topicId: 'exp',
+      domain: 'people', topic: 'Expert & People Discovery', topicId: 'exp',
       kind: 'clarify',
       metricValue: 32, metricUnit: '%', metricCaption: 'intent clarification rate',
       volume: 64, volumeLabel: 'searches',
       direction: 'down', changePct: 22,
     },
     {
-      domain: 'task', topic: 'TOR Generation — Climate', topicId: 'tor',
+      domain: 'task', topic: 'Document & TOR Generation', topicId: 'tor',
       kind: 'low-download',
       metricValue: 12, metricUnit: '%', metricCaption: 'downloads',
       volume: 142, volumeLabel: 'generations',

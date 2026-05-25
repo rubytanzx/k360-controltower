@@ -329,7 +329,7 @@ export class Analysis {
       countryQueries: { ke: 12, ng: 10, gh: 6, in: 18, id: 14, vn: 10, br: 9, mx: 7, pl: 5 },
     },
 
-    // ===================== Knowledge — Climate Adaptation =====================
+    // ===================== Knowledge — Climate Adaptation & Resilience =====================
     // Kenya-anchored climate adaptation topic. Subcategory totals = 142 prompts
     // (matches primaryCount). AFE-weighted intensity reflects East-African
     // demand seen in the Adobe drill-down for Kenya climate queries.
@@ -390,7 +390,7 @@ export class Analysis {
       countryQueries: { ke: 44, tz: 18, et: 12, ug: 10, rw:  6, mz:  8, za: 12, ng: 14, sn:  6, gh:  8, ci:  6, in: 18, bd: 14, pk:  8, lk:  4, vn:  8, id:  8, ph:  4, br:  6, mx:  4 },
     },
 
-    // ===================== Knowledge — Water Infrastructure ===================
+    // ===================== Knowledge — Water & Infrastructure ===================
     // Subcategory totals = 118 prompts (matches primaryCount).
     'water-infra': {
       id: 'water-infra',
@@ -449,7 +449,7 @@ export class Analysis {
       countryQueries: { ke: 36, tz: 14, et: 12, ug:  8, rw:  4, za:  8, mz:  6, ng: 12, sn:  6, ci:  4, in: 20, bd: 12, pk: 10, lk:  4, eg: 12, ma:  6, jo:  4, id:  8, vn:  4 },
     },
 
-    // ===================== Knowledge — Agriculture Resilience =================
+    // ===================== Knowledge — Agricultural Resilience =================
     // Subcategory totals = 96 prompts (matches primaryCount).
     'agri-resil': {
       id: 'agri-resil',
@@ -508,7 +508,7 @@ export class Analysis {
       countryQueries: { ke: 30, tz: 12, et: 14, ug:  8, rw:  5, mz:  3, za:  3, ng: 10, sn:  4, ml:  3, bj:  2, in: 14, bd: 10, pk:  6, np:  3, id:  4, vn:  3, kh:  3, br:  4, pe:  3 },
     },
 
-    // Other topic IDs fall back to Ghana Economic Growth if the query param
+    // Other topic IDs fall back to Macroeconomic Research if the query param
     // doesn't match — production should hydrate these from the real catalogue.
     ml:   {} as CategoryData,
     cli:  {} as CategoryData,

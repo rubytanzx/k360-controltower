@@ -1085,8 +1085,8 @@ const SEGMENT_DRAWER_DATA: Record<SegmentId, SegmentDrawerData> = {
     promptCategories: {
       knowledge: [
         { label: 'Flood Resilience Planning',       pct: 39, prompts: 198 },
-        { label: 'Climate Adaptation Strategies',   pct: 24, prompts: 122 },
-        { label: 'Water Infrastructure Financing',  pct: 22, prompts: 112 },
+        { label: 'Climate Adaptation & Resilience Strategies', pct: 24, prompts: 122 },
+        { label: 'Water & Infrastructure Financing',            pct: 22, prompts: 112 },
         { label: 'Urban Resilience',                pct:  9, prompts:  46 },
         { label: 'Disaster Preparedness',           pct:  6, prompts:  30 },
       ],

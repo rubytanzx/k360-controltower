@@ -484,7 +484,7 @@ interface RegionContext {
 const REGION_CONTEXT: Record<WbRegion, RegionContext> = {
   afe: {
     topSector: 'Climate',
-    topics: ['Climate Adaptation', 'Water Infrastructure', 'Agriculture Resilience'],
+    topics: ['Climate Adaptation & Resilience', 'Water & Infrastructure', 'Agricultural Resilience'],
     roles: ['Transport Specialist', 'Governance Specialist', 'Environmental Specialist'],
     taskTopics: ['Infrastructure Supervision', 'Consulting Services'],
     collections: ['Climate Adaptation Toolkit', 'Water Policy Notes', 'Debt Sustainability Analysis'],
