@@ -40,6 +40,8 @@ import {
   IconDotsVertical,
   IconArrowDownRight,
   IconMessageReport,
+  IconMessageCheck,
+  IconUsersGroup,
   IconUser,
   IconBook2,
   IconArrowsMove,
@@ -68,6 +70,11 @@ import {
   IconFileDownload,
   IconPaperclip,
   IconTriangleFilled,
+  IconCircleCheck,
+  IconCircleX,
+  IconLanguage,
+  IconLayoutGrid,
+  IconArrowsShuffle,
 } from '@tabler/icons-angular';
 
 import { routes } from './app.routes';
@@ -115,6 +122,8 @@ export const appConfig: ApplicationConfig = {
       IconDotsVertical,
       IconArrowDownRight,
       IconMessageReport,
+      IconMessageCheck,
+      IconUsersGroup,
       IconUser,
       IconBook2,
       IconArrowsMove,
@@ -143,6 +152,11 @@ export const appConfig: ApplicationConfig = {
       IconFileDownload,
       IconPaperclip,
       IconTriangleFilled,
+      IconCircleCheck,
+      IconCircleX,
+      IconLanguage,
+      IconLayoutGrid,
+      IconArrowsShuffle,
     }),
   ],
 };

@@ -1,4 +1,4 @@
-<!-- Date -->
+<!-- Date Range -->
 <div class="filter" [class.is-open]="openFilter() === 'date'">
   <button
     class="filter-trigger"
@@ -7,55 +7,28 @@
     [attr.aria-expanded]="openFilter() === 'date'"
   >
     <tabler-icon icon="calendar-month" [size]="16" />
-    <span class="filter-label">Date</span>
+    <span class="filter-label">Date Range</span>
     <span class="filter-value">{{ dateLabel() }}</span>
     <tabler-icon icon="chevron-down" [size]="14" class="caret" />
   </button>
   @if (openFilter() === 'date') {
     <div class="dropdown-backdrop" (click)="closeFilter()"></div>
-    <div class="dropdown range-dropdown" role="dialog">
-      <div class="range-mode">
-        <button
-          type="button"
-          [class.is-active]="dateMode() === 'month'"
-          (click)="setDateMode('month')"
-        >Month</button>
-        <button
-          type="button"
-          [class.is-active]="dateMode() === 'year'"
-          (click)="setDateMode('year')"
-        >Year</button>
+    <div class="dropdown list-dropdown" role="listbox">
+      <div class="dropdown-body">
+        @for (r of dateRanges; track r) {
+          <button
+            type="button"
+            class="dropdown-item"
+            [class.is-active]="selectedDate() === r"
+            (click)="pickDate(r)"
+          >
+            <span class="item-text">{{ r }}</span>
+            @if (selectedDate() === r) {
+              <tabler-icon icon="check" [size]="14" />
+            }
+          </button>
+        }
       </div>
-      @if (dateMode() === 'month') {
-        <div class="year-nav">
-          <button type="button" (click)="stepYear(-1)" aria-label="Previous year">
-            <tabler-icon icon="chevron-left" [size]="16" />
-          </button>
-          <span>{{ dateYear() }}</span>
-          <button type="button" (click)="stepYear(1)" aria-label="Next year">
-            <tabler-icon icon="chevron-right" [size]="16" />
-          </button>
-        </div>
-        <div class="month-grid">
-          @for (m of months; track m; let i = $index) {
-            <button
-              type="button"
-              [class.is-active]="dateMonth() === i"
-              (click)="pickMonth(i)"
-            >{{ m }}</button>
-          }
-        </div>
-      } @else {
-        <div class="year-grid">
-          @for (y of years; track y) {
-            <button
-              type="button"
-              [class.is-active]="dateYear() === y"
-              (click)="pickYear(y)"
-            >{{ y }}</button>
-          }
-        </div>
-      }
     </div>
   }
 </div>
@@ -92,11 +65,11 @@
           <button
             type="button"
             class="dropdown-item"
-            [class.is-active]="selectedCountry() === 'All Countries'"
-            (click)="pickCountry('All Countries')"
+            [class.is-active]="selectedCountry() === 'Global'"
+            (click)="pickCountry('Global')"
           >
-            <span class="item-text">All Countries</span>
-            @if (selectedCountry() === 'All Countries') {
+            <span class="item-text">Global</span>
+            @if (selectedCountry() === 'Global') {
               <tabler-icon icon="check" [size]="14" />
             }
           </button>
@@ -122,34 +95,34 @@
           }
         }
         @if (!hasCountryMatches()) {
-          <p class="dropdown-empty">No countries match “{{ searchQuery() }}”.</p>
+          <p class="dropdown-empty">No countries match "{{ searchQuery() }}".</p>
         }
       </div>
     </div>
   }
 </div>
 
-<!-- Vertical -->
-<div class="filter" [class.is-open]="openFilter() === 'vertical'">
+<!-- VPU -->
+<div class="filter" [class.is-open]="openFilter() === 'vpu'">
   <button
     class="filter-trigger"
     type="button"
-    (click)="toggleFilter('vertical')"
-    [attr.aria-expanded]="openFilter() === 'vertical'"
+    (click)="toggleFilter('vpu')"
+    [attr.aria-expanded]="openFilter() === 'vpu'"
   >
-    <tabler-icon icon="building" [size]="16" />
-    <span class="filter-label">Vertical</span>
-    <span class="filter-value">{{ verticalLabel() }}</span>
+    <tabler-icon icon="layout-grid" [size]="16" />
+    <span class="filter-label">VPU</span>
+    <span class="filter-value">{{ vpuLabel() }}</span>
     <tabler-icon icon="chevron-down" [size]="14" class="caret" />
   </button>
-  @if (openFilter() === 'vertical') {
+  @if (openFilter() === 'vpu') {
     <div class="dropdown-backdrop" (click)="closeFilter()"></div>
     <div class="dropdown list-dropdown" role="listbox">
       <div class="dropdown-search">
         <tabler-icon icon="search" [size]="14" />
         <input
           type="text"
-          placeholder="Search verticals..."
+          placeholder="Search VPUs..."
           [value]="searchQuery()"
           (input)="onSearchInput($any($event.target).value)"
           (keydown.escape)="closeFilter()"
@@ -157,21 +130,21 @@
         />
       </div>
       <div class="dropdown-body">
-        @for (v of filteredVerticals(); track v) {
+        @for (v of filteredVpus(); track v) {
           <button
             type="button"
             class="dropdown-item"
-            [class.is-active]="selectedVertical() === v"
-            (click)="pickVertical(v)"
+            [class.is-active]="selectedVpu() === v"
+            (click)="pickVpu(v)"
           >
             <span class="item-text">{{ v }}</span>
-            @if (selectedVertical() === v) {
+            @if (selectedVpu() === v) {
               <tabler-icon icon="check" [size]="14" />
             }
           </button>
         }
-        @if (filteredVerticals().length === 0) {
-          <p class="dropdown-empty">No verticals match “{{ searchQuery() }}”.</p>
+        @if (!hasVpuMatches()) {
+          <p class="dropdown-empty">No VPUs match "{{ searchQuery() }}".</p>
         }
       </div>
     </div>
@@ -194,19 +167,8 @@
   @if (openFilter() === 'sector') {
     <div class="dropdown-backdrop" (click)="closeFilter()"></div>
     <div class="dropdown list-dropdown" role="listbox">
-      <div class="dropdown-search">
-        <tabler-icon icon="search" [size]="14" />
-        <input
-          type="text"
-          placeholder="Search sectors..."
-          [value]="searchQuery()"
-          (input)="onSearchInput($any($event.target).value)"
-          (keydown.escape)="closeFilter()"
-          autofocus
-        />
-      </div>
       <div class="dropdown-body">
-        @for (s of filteredSectors(); track s) {
+        @for (s of sectors; track s) {
           <button
             type="button"
             class="dropdown-item"
@@ -218,9 +180,6 @@
               <tabler-icon icon="check" [size]="14" />
             }
           </button>
-        }
-        @if (filteredSectors().length === 0) {
-          <p class="dropdown-empty">No sectors match “{{ searchQuery() }}”.</p>
         }
       </div>
     </div>

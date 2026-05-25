@@ -1,208 +1,445 @@
 <header class="page-header">
-  <h1 class="title">Users</h1>
-  <button class="bell" aria-label="Notifications">
-    <tabler-icon icon="bell" [size]="26" />
-    <span class="badge">4</span>
-  </button>
+  <div class="page-header-title">
+    <h1 class="title">Users</h1>
+    <p class="page-subtitle">Who is using K360 — adoption, engagement, and segmentation across WBG staff and VPUs.</p>
+  </div>
+
+  <div class="users-filter-bar">
+    <app-hier-filter placeholder="Select Region/Country" [groups]="regionGroups" />
+    <app-hier-filter placeholder="Select VPUs"           [groups]="vpuGroups" />
+    <app-date-range-filter />
+  </div>
 </header>
 
-<app-filter-bar class="filter-bar" />
-
-<!-- User engagement row -->
-<h2 class="section-label">User Engagement</h2>
-<section class="kpi-grid kpi-grid-5">
-  <article class="card kpi-card">
-    <header class="kpi-head">
-      <span class="kpi-title">{{ uniqueActiveUsers.title }}</span>
-      <span class="kpi-delta">
-        <tabler-icon icon="arrow-up" [size]="12" />{{ uniqueActiveUsers.delta }}
-      </span>
-    </header>
-    <div class="kpi-row">
-      <span class="kpi-value">{{ uniqueActiveUsers.value }}</span>
-      <span class="kpi-unit">{{ uniqueActiveUsers.unit }}</span>
-    </div>
-    <p class="kpi-target">
-      <tabler-icon icon="users" [size]="12" />used K360 in range
-    </p>
-  </article>
-
-  <article class="card kpi-card">
-    <header class="kpi-head">
-      <span class="kpi-title">{{ activeUsers.title }}</span>
-      <span class="kpi-delta">
-        <tabler-icon icon="arrow-up" [size]="12" />{{ activeUsers.delta }}
-      </span>
-    </header>
-    <div class="kpi-row">
-      <span class="kpi-value">{{ activeUsers.value }}</span>
-      <span class="kpi-unit">{{ activeUsers.unit }}</span>
-    </div>
-    <svg viewBox="0 0 220 50" preserveAspectRatio="none" class="kpi-spark">
-      <defs>
-        <linearGradient id="u-spark-1" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#1ad6ff" stop-opacity="0.5" />
-          <stop offset="100%" stop-color="#1ad6ff" stop-opacity="0" />
-        </linearGradient>
-      </defs>
-      <path
-        d="M 0,42 C 30,40 55,38 85,36 S 145,28 175,18 S 210,8 220,4 L 220,50 L 0,50 Z"
-        fill="url(#u-spark-1)"
-      />
-      <path
-        d="M 0,42 C 30,40 55,38 85,36 S 145,28 175,18 S 210,8 220,4"
-        fill="none"
-        stroke="#1ad6ff"
-        stroke-width="2"
-      />
-    </svg>
-  </article>
-
-  <article class="card kpi-card">
-    <header class="kpi-head">
-      <span class="kpi-title">{{ adoption.title }}</span>
-    </header>
-    <div class="kpi-arc-wrap">
-      <svg viewBox="0 0 100 100" class="kpi-arc">
-        <circle cx="50" cy="50" r="42" stroke="var(--bg-elevated)" stroke-width="8" fill="none" />
-        <circle
-          cx="50"
-          cy="50"
-          r="42"
-          stroke="#1ad6ff"
-          stroke-width="8"
-          fill="none"
-          stroke-linecap="round"
-          [attr.stroke-dasharray]="arcStroke(adoption.arcPct).dash"
-          transform="rotate(-90 50 50)"
-        />
-      </svg>
-      <div class="kpi-arc-center">
-        <span class="kpi-value">{{ adoption.value }}</span>
-        <span class="kpi-sub">{{ adoption.sub }}</span>
+<!-- KPI row (5 cards) — reuses shared homepage .kpi-card -->
+<section class="kpi-grid kpi-grid--5">
+  @for (k of userKpis; track k.title) {
+    <article class="kpi-card">
+      <h3 class="kpi-card-title">{{ k.title }}</h3>
+      <div class="kpi-metrics">
+        @for (m of k.metrics; track $index; let i = $index) {
+          @if (i > 0) { <span class="kpi-metric-sep" aria-hidden="true">|</span> }
+          <div class="kpi-metric">
+            <span class="kpi-metric-value">{{ m.value }}</span>
+            @if (m.label) { <span class="kpi-metric-label">{{ m.label }}</span> }
+            @if (m.delta) { <span class="kpi-metric-delta">{{ m.delta }}</span> }
+          </div>
+        }
       </div>
-    </div>
-  </article>
+      @if (k.sub) {
+        <p class="kpi-card-sub">{{ k.sub }}</p>
+      }
+    </article>
+  }
+</section>
 
-  <article class="card kpi-card">
-    <header class="kpi-head">
-      <span class="kpi-title">{{ avgViews.title }}</span>
-      <span class="kpi-delta">
-        <tabler-icon icon="arrow-up" [size]="12" />{{ avgViews.delta }}
-      </span>
-    </header>
-    <div class="kpi-row">
-      <span class="kpi-value">{{ avgViews.value }}</span>
-      <span class="kpi-unit">{{ avgViews.unit }}</span>
-    </div>
-    <p class="kpi-target">
-      <tabler-icon icon="target" [size]="12" />{{ avgViews.sub }}
-    </p>
-    <svg viewBox="0 0 220 50" preserveAspectRatio="none" class="kpi-spark">
-      <defs>
-        <linearGradient id="u-spark-2" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#4ade80" stop-opacity="0.45" />
-          <stop offset="100%" stop-color="#4ade80" stop-opacity="0" />
-        </linearGradient>
-      </defs>
-      <path
-        d="M 0,40 C 30,38 60,36 90,34 S 150,28 180,20 S 210,12 220,8 L 220,50 L 0,50 Z"
-        fill="url(#u-spark-2)"
-      />
-      <path
-        d="M 0,40 C 30,38 60,36 90,34 S 150,28 180,20 S 210,12 220,8"
-        fill="none"
-        stroke="#4ade80"
-        stroke-width="2"
-      />
-    </svg>
+<!-- Top Engaged VPUs / Highest Growth VPUs -->
+<section class="users-vpu-row">
+  <article class="kpi-card vpu-rank-card">
+    <h3 class="kpi-card-title">Top Engaged VPUs</h3>
+    <ol class="vpu-rank-list">
+      @for (v of topEngagedVpus; track v.code; let i = $index) {
+        <li class="vpu-rank-row">
+          <span class="vpu-rank-num">{{ i + 1 }}</span>
+          <span class="vpu-rank-code">{{ v.code }}</span>
+          <span class="vpu-rank-name">{{ v.name }}</span>
+          <span class="vpu-rank-metric">{{ v.users }} <span class="vpu-rank-metric-unit">users</span></span>
+        </li>
+      }
+    </ol>
   </article>
-
-  <article class="card kpi-card">
-    <header class="kpi-head">
-      <span class="kpi-title">{{ actionTakingUsers.title }}</span>
-      <span class="kpi-delta">
-        <tabler-icon icon="arrow-up" [size]="12" />{{ actionTakingUsers.delta }}
-      </span>
-    </header>
-    <div class="kpi-row">
-      <span class="kpi-value">{{ actionTakingUsers.value }}</span>
-    </div>
-    <p class="kpi-target">
-      <tabler-icon icon="hand-click" [size]="12" />{{ actionTakingUsers.sub }}
-    </p>
+  <article class="kpi-card vpu-rank-card">
+    <h3 class="kpi-card-title">Highest Growth VPUs</h3>
+    <ol class="vpu-rank-list">
+      @for (v of highestGrowthVpus; track v.code; let i = $index) {
+        <li class="vpu-rank-row">
+          <span class="vpu-rank-num">{{ i + 1 }}</span>
+          <span class="vpu-rank-code">{{ v.code }}</span>
+          <span class="vpu-rank-name">{{ v.name }}</span>
+          <span class="vpu-rank-metric vpu-rank-metric--growth">+{{ v.growthPct }}%</span>
+        </li>
+      }
+    </ol>
   </article>
 </section>
 
-<!-- Behavioral Segmentation -->
-<h2 class="section-label">Behavior</h2>
-<section class="matrix-section">
-  <article class="card matrix-card">
-    <header class="card-head">
-      <div>
-        <h3 class="card-title">Behavioral Segmentation Matrix</h3>
-        <p class="card-sub">User distribution based on conversation volume vs. prompt intensity</p>
+<!-- Behavioral Segmentation Matrix | User Segmentation by VPU -->
+<section class="users-behavior">
+  <article class="behavior-card">
+    <header class="behavior-head">
+      <h3 class="behavior-title">Behavioral Segmentation Matrix</h3>
+      <div class="period-toggle">
+        @for (p of periods; track p) {
+          <button
+            type="button"
+            [class.is-active]="activePeriod() === p"
+            (click)="activePeriod.set(p)"
+          >{{ p }}</button>
+        }
       </div>
-      <button class="more-btn" aria-label="More">
-        <tabler-icon icon="dots-vertical" [size]="18" />
+    </header>
+
+    <div class="scatter-wrap">
+      <div class="scatter-ylabel">PROMPTS / SESSION</div>
+      <div class="scatter-plot-area">
+        <svg
+          [attr.viewBox]="'0 0 ' + svgW + ' ' + svgH"
+          class="scatter-svg"
+          preserveAspectRatio="xMidYMid meet"
+        >
+          <!-- Quadrant tints: top-left = Focused, top-right = Power,
+               bottom-left = One-Time, bottom-right = Low Engagement.  -->
+          <rect x="52" y="16"  width="176" height="112" class="quad-bg" data-seg="focused" />
+          <rect x="228" y="16"  width="176" height="112" class="quad-bg" data-seg="power" />
+          <rect x="52" y="128" width="176" height="112" class="quad-bg" data-seg="onetime" />
+          <rect x="228" y="128" width="176" height="112" class="quad-bg" data-seg="low" />
+
+          @for (t of [5, 15]; track t) {
+            <line [attr.x1]="toSvgX(t)" y1="16" [attr.x2]="toSvgX(t)" y2="240" class="grid-line" />
+            <line x1="52" [attr.y1]="toSvgY(t)" x2="404" [attr.y2]="toSvgY(t)" class="grid-line" />
+          }
+
+          <line x1="228" y1="16" x2="228" y2="240" class="quad-line" />
+          <line x1="52" y1="128" x2="404" y2="128" class="quad-line" />
+
+          @for (t of [0, 5, 10, 15, 20]; track t) {
+            <text [attr.x]="44" [attr.y]="toSvgY(t) + 4" class="axis-tick" text-anchor="end">{{ t }}</text>
+          }
+          @for (t of [0, 5, 10, 15, 20]; track t) {
+            <text [attr.x]="toSvgX(t)" y="258" class="axis-tick" text-anchor="middle">{{ t }}</text>
+          }
+
+          <text x="58"  y="30"  class="quad-label" data-seg="focused">FOCUSED USERS</text>
+          <text x="398" y="30"  class="quad-label" text-anchor="end" data-seg="power">POWER USERS</text>
+          <text x="58"  y="143" class="quad-label" data-seg="onetime">ONE-TIME USERS</text>
+          <text x="398" y="143" class="quad-label" text-anchor="end" data-seg="low">LOW ENGAGEMENT</text>
+
+          <!-- VPU dots: color = VPU color, radius = active users, position
+               (conversations × prompts/session) classifies the quadrant.
+               cx/cy transition via CSS so dots animate when the period
+               toggle changes. -->
+          @for (d of vpuDots(); track d.code) {
+            <circle
+              [attr.cx]="d.cx"
+              [attr.cy]="d.cy"
+              [attr.r]="d.r"
+              [attr.fill]="d.color"
+              class="vpu-dot"
+              [class.is-selected]="selectedVpu() === d.code"
+              [class.is-dim]="selectedVpu() && selectedVpu() !== d.code"
+              (click)="selectVpu(d.code); $event.stopPropagation()"
+              (mouseenter)="hoveredVpu.set(d.code)"
+              (mouseleave)="hoveredVpu.set(null)"
+            />
+          }
+
+        </svg>
+
+        <!-- Hover-only mini tooltip — HTML overlay so the full VPU name
+             lays out cleanly. Hidden when a popup is already open for the
+             same dot. -->
+        @if (hoveredVpuTooltip(); as h) {
+          @if (selectedVpu() !== h.code) {
+            <div
+              class="vpu-hover-tip"
+              [style.left.%]="(toSvgX(h.conversations) / svgW) * 100"
+              [style.top.%]="(toSvgY(h.promptsPerSession) / svgH) * 100"
+            >
+              <div class="vpu-hover-tip-name">{{ h.name }}</div>
+              <div class="vpu-hover-tip-hint">click for more information</div>
+            </div>
+          }
+        }
+
+        <!-- Click-driven popup that floats above the selected dot.
+             left/top are bound as % of the SVG viewBox so the popup tracks
+             the dot wherever it lands. -->
+        @if (selectedVpuDot(); as d) {
+          <div
+            class="vpu-popup"
+            [style.left.%]="(d.cx / svgW) * 100"
+            [style.top.%]="(d.cy / svgH) * 100"
+          >
+            <header class="vpu-popup-head">
+              <span class="vpu-detail-swatch" [style.background]="d.color"></span>
+              <div class="vpu-detail-name">
+                <strong>{{ d.code }}</strong>
+                <span>{{ d.name }}</span>
+              </div>
+              <button class="vpu-detail-close" type="button" (click)="selectVpu(d.code)" aria-label="Close">
+                <tabler-icon icon="x" [size]="14" />
+              </button>
+            </header>
+            <span class="vpu-tooltip-seg" [attr.data-seg]="d.segment">
+              {{ d.segment === 'power' ? 'Power Users' : d.segment === 'focused' ? 'Focused Users' : d.segment === 'onetime' ? 'One-Time Users' : 'Low Engagement Users' }}
+            </span>
+            <dl class="vpu-detail-grid">
+              <div><dt>Active users</dt><dd>{{ d.activeUsers }}</dd></div>
+              <div><dt>Conversations</dt><dd>{{ d.conversations }}</dd></div>
+              <div><dt>Prompts / session</dt><dd>{{ d.promptsPerSession }}</dd></div>
+              <div><dt>Top prompt category</dt><dd>{{ d.topPromptCategory }}</dd></div>
+              <div class="vpu-detail-wide"><dt>Top collection</dt><dd>{{ d.topCollection }}</dd></div>
+            </dl>
+          </div>
+        }
+
+        <div class="scatter-xlabel">CONVERSATIONS</div>
+      </div>
+    </div>
+  </article>
+
+  <article class="breakdown-card">
+    <h3 class="behavior-title">User Segmentation by VPU</h3>
+
+    <div class="breakdown-insight">
+      <header class="breakdown-insight-head">
+        <tabler-icon icon="sparkles" [size]="16" />
+        <span>Insight</span>
+      </header>
+      <p class="breakdown-insight-body">{{ breakdownInsight }}</p>
+    </div>
+
+    <ul class="seg-bars">
+      @for (r of segmentRollup(); track r.segment) {
+        <li class="seg-row">
+          <a class="seg-row-label" (click)="openSegDrawer(r.segment)">{{ r.label }} ({{ r.total }})</a>
+          <div class="seg-bar-wrap">
+            <div
+              class="seg-bar"
+              [style.width.%]="(r.total / maxSegmentTotal()) * 100"
+            >
+              @for (v of r.vpus; track v.code) {
+                <button
+                  type="button"
+                  class="seg-bar-chip"
+                  [class.is-selected]="focusedVpu() === v.code"
+                  [class.is-dim]="focusedVpu() && focusedVpu() !== v.code"
+                  [style.background]="v.color"
+                  [style.flex]="v.activeUsers"
+                  [attr.title]="v.name + ' · ' + v.activeUsers + ' users · ' + segmentPct(v.activeUsers, r.total) + '% of segment'"
+                  (click)="selectVpu(v.code)"
+                  (mouseenter)="hoveredVpu.set(v.code)"
+                  (mouseleave)="hoveredVpu.set(null)"
+                ></button>
+              }
+            </div>
+          </div>
+        </li>
+      }
+    </ul>
+  </article>
+</section>
+
+<!-- ========================= Segment detail drawer ========================= -->
+@if (segDrawerOpen()) {
+  <div class="sd-backdrop" (click)="closeSegDrawer()"></div>
+}
+
+<aside
+  class="sd-drawer"
+  [class.is-open]="segDrawerOpen()"
+  [attr.aria-hidden]="!segDrawerOpen()"
+  aria-label="User segment detail"
+>
+  @if (segDrawerData(); as d) {
+    <header class="sd-head">
+      <h2 class="sd-title">{{ d.label }}</h2>
+      <button class="sd-close" type="button" (click)="closeSegDrawer()" aria-label="Close">
+        <tabler-icon icon="x" [size]="18" />
       </button>
     </header>
 
-    <div class="matrix-wrap">
-      <div class="y-label">NUMBER OF PROMPTS (Y)</div>
-      <div class="matrix-grid">
-        @for (s of segments; track s.id) {
-          <button
-            type="button"
-            class="matrix-cell"
-            [attr.data-seg]="s.id"
-            [class.is-selected]="selectedSegment() === s.id"
-            (click)="selectSegment(s.id)"
-          >
-            <span class="seg-pill">
-              <span class="seg-dot"></span>{{ s.name }}
-            </span>
-            <div class="seg-bottom">
-              <span class="seg-pct">{{ s.pct }}%</span>
-              <span class="seg-users">{{ s.users }}</span>
-            </div>
-          </button>
+    <div class="sd-body">
+      <!-- 6 stat cards -->
+      <section class="sd-stats">
+        @for (s of d.stats; track s.label) {
+          <div class="sd-stat-card">
+            <span class="sd-stat-value">{{ s.value }}</span>
+            <span class="sd-stat-label">{{ s.label }}</span>
+          </div>
         }
-      </div>
-      <div class="x-label">NUMBER OF CONVERSATIONS (X)</div>
-    </div>
-  </article>
-
-  <article class="card summary-card" [class.is-empty]="!currentSegment()">
-    @if (currentSegment(); as seg) {
-      <header class="summary-head">
-        <span class="summary-seg-pill" [attr.data-seg]="seg.id">
-          <span class="seg-dot"></span>{{ seg.name }}
-        </span>
-        <div class="summary-meta">
-          <span class="summary-pct">{{ seg.pct }}%</span>
-          <span class="summary-users">{{ seg.users }}</span>
-        </div>
-      </header>
-
-      <section class="summary-ai">
-        <header class="summary-ai-head">
-          <tabler-icon icon="sparkles" [size]="14" />
-          <span>AI Summary</span>
-        </header>
-        <p class="summary-ai-text">{{ currentSummary() }}</p>
       </section>
-    } @else {
-      <div class="summary-empty">
-        <span class="summary-empty-icon">
-          <tabler-icon icon="sparkles" [size]="24" />
-        </span>
-        <p class="summary-empty-title">Select a user type to know more</p>
-        <p class="summary-empty-sub">
-          Tap any quadrant in the matrix to see behavioral patterns, signals,
-          and growth opportunities for that cohort.
-        </p>
-      </div>
-    }
-  </article>
-</section>
+
+      <!-- Geographical Distribution -->
+      <section class="sd-card">
+        <header class="sd-card-head">
+          <h3 class="sd-card-title">Geographical Distribution</h3>
+          <div class="cd-map-toggle">
+            <button
+              type="button"
+              class="cd-map-btn"
+              [class.is-active]="segDrawerMapMode() === 'region'"
+              (click)="setSegDrawerMapMode('region')"
+            >
+              <tabler-icon icon="affiliate" [size]="13" />
+              By Region
+            </button>
+            <button
+              type="button"
+              class="cd-map-btn"
+              [class.is-active]="segDrawerMapMode() === 'country'"
+              (click)="setSegDrawerMapMode('country')"
+            >
+              <tabler-icon icon="flag" [size]="13" />
+              By Country
+            </button>
+          </div>
+        </header>
+        <div
+          #segMapHost
+          class="sd-map"
+          [class.mode-region]="segDrawerMapMode() === 'region'"
+          [class.is-panning]="segIsPanning()"
+          role="img"
+          aria-label="Click a country to see users. Drag to pan, scroll to zoom."
+          (wheel)="onSegMapWheel($event)"
+          (mousedown)="onSegPanStart($event)"
+          (mousemove)="onSegPanMove($event)"
+          (mouseup)="onSegPanEnd()"
+          (mouseleave)="onSegPanEnd()"
+          (click)="onSegMapClick($event)"
+        >
+          <div
+            class="sd-map-pan"
+            [style.transform]="segMapTransform()"
+            [innerHTML]="segMapSvg()"
+          ></div>
+
+          <div class="sd-map-zoom-ctrls" aria-label="Zoom controls">
+            <button type="button" (click)="segZoomIn()"    aria-label="Zoom in">
+              <tabler-icon icon="plus" [size]="14" />
+            </button>
+            <button type="button" (click)="segZoomOut()"   aria-label="Zoom out">
+              <tabler-icon icon="minus" [size]="14" />
+            </button>
+            <button type="button" (click)="segResetView()" aria-label="Reset view">
+              <tabler-icon icon="refresh" [size]="14" />
+            </button>
+          </div>
+
+          @if (segDrawerMapSelection(); as sel) {
+            <div class="sd-map-tooltip">
+              <div class="sd-map-tooltip-name">{{ sel.name }}</div>
+              <div class="sd-map-tooltip-value">{{ sel.users }} users</div>
+            </div>
+          }
+        </div>
+      </section>
+
+      <!-- VPU Breakdown -->
+      <section class="sd-card">
+        <h3 class="sd-card-title">VPU Breakdown</h3>
+        <table class="sd-table">
+          <thead>
+            <tr>
+              <th>
+                <span class="reg-sort-th">
+                  VPU
+                  <tabler-icon class="reg-sort-caret" icon="arrow-down" [size]="12" />
+                </span>
+              </th>
+              <th>
+                <span class="reg-sort-th">
+                  % of Users
+                  <tabler-icon class="reg-sort-caret is-active" icon="arrow-down" [size]="12" />
+                </span>
+              </th>
+              <th>
+                <span class="reg-sort-th">
+                  Growth
+                  <tabler-icon class="reg-sort-caret" icon="arrow-down" [size]="12" />
+                </span>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (v of d.vpuBreakdown; track v.code) {
+              <tr>
+                <td><a class="reg-cell-link" href="#">{{ v.code }}</a></td>
+                <td><span class="reg-cell-link">{{ v.pct }}%</span></td>
+                <td><span class="reg-cell-link">+{{ v.growth }}%</span></td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </section>
+
+      <!-- Top Prompt Categories -->
+      <section class="sd-card">
+        <h3 class="sd-card-title">Top Prompt Categories</h3>
+        <nav class="cd-panel-tabs">
+          @for (t of [
+            { id: 'knowledge', label: 'Knowledge' },
+            { id: 'people',    label: 'People' },
+            { id: 'tasks',     label: 'Tasks' }
+          ]; track t.id) {
+            <button
+              type="button"
+              class="cd-panel-tab"
+              [class.is-active]="segDrawerTab() === t.id"
+              (click)="segDrawerTab.set($any(t.id))"
+            >{{ t.label }}</button>
+          }
+        </nav>
+        <div class="treemap sd-treemap">
+          @for (c of activeSegPromptCategories(); track c.label; let i = $index) {
+            <div class="treemap-tile" [attr.data-rank]="i + 1">
+              <div class="treemap-tile-label">{{ c.label }}</div>
+              <div class="treemap-tile-stats">
+                <strong>{{ c.pct }}%</strong>
+                <span class="treemap-tile-dot">·</span>
+                <span>{{ c.prompts }} prompts</span>
+              </div>
+            </div>
+          }
+        </div>
+      </section>
+
+      <!-- Most Used Collections -->
+      <section class="sd-card">
+        <h3 class="sd-card-title">Most Used Collections</h3>
+        <table class="sd-table">
+          <thead>
+            <tr>
+              <th><span class="reg-sort-th">Collection <tabler-icon class="reg-sort-caret" icon="arrow-down" [size]="12" /></span></th>
+              <th><span class="reg-sort-th">Usage Share <tabler-icon class="reg-sort-caret is-active" icon="arrow-down" [size]="12" /></span></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (c of d.collections; track c.name) {
+              <tr>
+                <td><a class="reg-cell-link" [routerLink]="['/assets/collection', slugFor(c.name)]">{{ c.name }}</a></td>
+                <td>
+                  <a class="reg-cell-link" [routerLink]="['/assets/collection', slugFor(c.name)]">{{ c.usage }}%</a>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </section>
+
+      <!-- Most Used Agents -->
+      <section class="sd-card">
+        <h3 class="sd-card-title">Most Used Agents</h3>
+        <table class="sd-table">
+          <thead>
+            <tr>
+              <th><span class="reg-sort-th">Agent <tabler-icon class="reg-sort-caret" icon="arrow-down" [size]="12" /></span></th>
+              <th><span class="reg-sort-th">Usage Share <tabler-icon class="reg-sort-caret is-active" icon="arrow-down" [size]="12" /></span></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (a of d.agents; track a.name) {
+              <tr>
+                <td><a class="reg-cell-link" [routerLink]="['/assets/agent', slugFor(a.name)]">{{ a.name }}</a></td>
+                <td>
+                  <a class="reg-cell-link" [routerLink]="['/assets/agent', slugFor(a.name)]">{{ a.usage }}%</a>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </section>
+    </div>
+  }
+</aside>

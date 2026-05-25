@@ -1,328 +1,317 @@
 <header class="page-header">
   <h1 class="welcome">Welcome back, Nick</h1>
-  <button class="bell" aria-label="Notifications">
-    <tabler-icon icon="bell" [size]="26" />
-    <span class="badge">4</span>
-  </button>
+
+  <div class="page-header-actions">
+    <button type="button" class="date-range-btn" aria-label="Customise Date Range">
+      <tabler-icon icon="calendar-month" [size]="16" />
+      <span>Customise Date Range</span>
+      <tabler-icon icon="chevron-down" [size]="14" />
+    </button>
+
+    <div class="workspace-toggle" role="group" aria-label="Workspace">
+      <button
+        type="button"
+        class="ws-label"
+        [class.is-active]="workspace() === 'wb'"
+        (click)="setWorkspace('wb')"
+      >World Bank</button>
+      <button
+        type="button"
+        class="ws-switch"
+        role="switch"
+        [attr.aria-checked]="workspace() === 'ifc'"
+        [class.is-on]="workspace() === 'ifc'"
+        (click)="setWorkspace(workspace() === 'ifc' ? 'wb' : 'ifc')"
+      >
+        <span class="ws-switch-knob"></span>
+      </button>
+      <button
+        type="button"
+        class="ws-label"
+        [class.is-active]="workspace() === 'ifc'"
+        (click)="setWorkspace('ifc')"
+      >IFC</button>
+    </div>
+  </div>
 </header>
 
-<app-filter-bar class="filter-bar" />
-
-<section class="kpi-grid">
-  @for (k of kpis; track k.title; let i = $index) {
-    <article class="card kpi-card" [attr.data-variant]="k.variant">
-      <header class="kpi-head">
-        <span class="kpi-title">{{ k.title }}</span>
-        <tabler-icon class="info" icon="info-circle" [size]="14" />
-      </header>
-
-      @switch (k.variant) {
-        @case ('sparkline') {
-          <div class="kpi-row">
-            <span class="kpi-value">{{ k.value }}</span>
-            @if (k.unit) {
-              <span class="kpi-unit">{{ k.unit }}</span>
-            }
-            <span class="kpi-delta">
-              <tabler-icon icon="arrow-up" [size]="12" />{{ k.delta }}
-            </span>
-          </div>
-          @if (k.sub) {
-            <p class="kpi-sub">{{ k.sub }}</p>
-          }
-          <svg viewBox="0 0 220 50" preserveAspectRatio="none" class="kpi-spark">
-            <defs>
-              <linearGradient [attr.id]="'kpi-grad-' + i" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="#1ad6ff" stop-opacity="0.5" />
-                <stop offset="100%" stop-color="#1ad6ff" stop-opacity="0" />
-              </linearGradient>
-            </defs>
-            <path
-              d="M 0,42 C 30,40 55,38 85,36 S 145,28 175,18 S 210,8 220,4 L 220,50 L 0,50 Z"
-              [attr.fill]="'url(#kpi-grad-' + i + ')'"
-            />
-            <path
-              d="M 0,42 C 30,40 55,38 85,36 S 145,28 175,18 S 210,8 220,4"
-              fill="none"
-              stroke="#1ad6ff"
-              stroke-width="2"
-            />
-          </svg>
-        }
-
-        @case ('arc') {
-          <div class="kpi-arc-wrap">
-            <svg viewBox="0 0 100 100" class="kpi-arc">
-              <circle
-                cx="50"
-                cy="50"
-                r="42"
-                stroke="var(--bg-elevated)"
-                stroke-width="8"
-                fill="none"
-              />
-              <circle
-                cx="50"
-                cy="50"
-                r="42"
-                stroke="#1ad6ff"
-                stroke-width="8"
-                fill="none"
-                stroke-linecap="round"
-                [attr.stroke-dasharray]="arcStroke(k.arcPct ?? 0).dash"
-                transform="rotate(-90 50 50)"
-              />
-            </svg>
-            <div class="kpi-arc-center">
-              <span class="kpi-value">{{ k.value }}</span>
-              <span class="kpi-sub">{{ k.sub }}</span>
-            </div>
-          </div>
-        }
-
-        @case ('placeholder') {
-          <div class="kpi-placeholder">
-            <span class="kpi-placeholder-icon">
-              <tabler-icon [icon]="k.icon!" [size]="20" />
-            </span>
-            <p class="kpi-placeholder-text">{{ k.placeholder }}</p>
-          </div>
-        }
-
-        @case ('status') {
-          <div class="kpi-status">
-            <span class="status-dot"></span>
-            <span class="kpi-value">{{ k.value }}</span>
-          </div>
-          <p class="kpi-sub">{{ k.sub }}</p>
-        }
-
-        @case ('target') {
-          <div class="kpi-row">
-            <span class="kpi-value">{{ k.value }}</span>
-          </div>
-          <p class="kpi-sub">{{ k.sub }}</p>
-        }
-
-        @case ('response') {
-          <div class="kpi-row">
-            <span class="kpi-value">{{ k.value }}</span>
-            @if (k.unit) {
-              <span class="kpi-unit">{{ k.unit }}</span>
-            }
-            <span class="kpi-delta good">
-              <tabler-icon icon="arrow-down" [size]="12" />{{ k.delta }}
-            </span>
-          </div>
-          @if (k.sub) {
-            <p class="kpi-sub">{{ k.sub }}</p>
-          }
-          <svg viewBox="0 0 220 50" preserveAspectRatio="none" class="kpi-spark">
-            <defs>
-              <linearGradient [attr.id]="'resp-grad-' + i" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="#4ade80" stop-opacity="0.45" />
-                <stop offset="100%" stop-color="#4ade80" stop-opacity="0" />
-              </linearGradient>
-            </defs>
-            <path
-              d="M 0,12 C 30,16 55,20 85,22 S 145,28 175,34 S 210,40 220,44 L 220,50 L 0,50 Z"
-              [attr.fill]="'url(#resp-grad-' + i + ')'"
-            />
-            <path
-              d="M 0,12 C 30,16 55,20 85,22 S 145,28 175,34 S 210,40 220,44"
-              fill="none"
-              stroke="#4ade80"
-              stroke-width="2"
-            />
-          </svg>
-        }
-
-        @case ('uptime') {
-          <div class="kpi-row">
-            <span class="uptime-value">{{ k.value }}</span>
-          </div>
-          <p class="kpi-sub">{{ k.sub }}</p>
-
-          <div class="uptime-foot">
-            <span class="uptime-delta">
-              <tabler-icon icon="triangle-filled" [size]="9" />
-              {{ k.delta }} vs last month
-            </span>
-            <span class="uptime-sla">
-              <span class="sla-dot"></span>
-              SLA Target: ≥99%
-            </span>
-          </div>
-
-          <svg
-            viewBox="0 0 220 50"
-            preserveAspectRatio="none"
-            class="kpi-spark uptime-spark"
-          >
-            <defs>
-              <linearGradient id="uptime-fade" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="#4ade80" stop-opacity="0.45" />
-                <stop offset="100%" stop-color="#4ade80" stop-opacity="0" />
-              </linearGradient>
-            </defs>
-            <path
-              d="M 0,42 C 22,40 44,36 66,32 S 110,24 143,18 S 187,12 220,6 L 220,50 L 0,50 Z"
-              fill="url(#uptime-fade)"
-            />
-            <path
-              d="M 0,42 C 22,40 44,36 66,32 S 110,24 143,18 S 187,12 220,6"
-              fill="none"
-              stroke="#4ade80"
-              stroke-width="2"
-              stroke-linecap="round"
-            />
-            <circle cx="220" cy="6" r="5" fill="#4ade80" opacity="0.35" />
-            <circle cx="220" cy="6" r="2.5" fill="#86efac" />
-          </svg>
-        }
-      }
-    </article>
-  }
-</section>
-
-<section class="row2-grid">
-  <article class="card agents-card">
-    <header class="lower-head">
-      <div class="title-wrap">
-        <tabler-icon icon="robot" [size]="18" />
-        <span class="lower-title">Agents</span>
-      </div>
-      <a class="view-link" routerLink="/assets" [queryParams]="{ tab: 'agents' }">
-        View <tabler-icon icon="chevron-right" [size]="16" />
-      </a>
-    </header>
-
-    <div class="agent-bar">
-      @for (a of agents; track a.id) {
-        <div
-          class="agent-seg"
-          [attr.data-agent]="a.id"
-          [style.flex]="a.pct"
-          [title]="a.name + ' · ' + a.pct + '%'"
-        ></div>
-      }
-    </div>
-
-    <ul class="agent-legend">
-      @for (a of agents; track a.id) {
-        <li>
-          <span class="agent-dot" [attr.data-agent]="a.id"></span>
-          <span class="agent-name">{{ a.name }}</span>
-          <span class="agent-pct">{{ a.pct }}%</span>
-        </li>
-      }
-    </ul>
-  </article>
-
-  <article class="card ingested-card">
-    <header class="lower-head">
-      <div class="title-wrap">
-        <tabler-icon icon="database" [size]="18" />
-        <span class="lower-title">Ingested Collections</span>
-      </div>
-      <a class="view-link" routerLink="/assets" [queryParams]="{ tab: 'collections' }">
-        View <tabler-icon icon="chevron-right" [size]="16" />
-      </a>
-    </header>
-    <div class="ingested-body">
-      <span class="ingested-value">{{ ingested.value }}</span>
-      <span class="ingested-delta">
-        <tabler-icon icon="arrow-up" [size]="14" />{{ ingested.delta }}
-      </span>
-    </div>
-  </article>
-</section>
-
-<section class="card thematic-card">
-  <header class="lower-head">
-    <div class="title-wrap">
-      <tabler-icon icon="sparkles" [size]="18" />
-      <span class="lower-title">Thematic Breakdown</span>
-    </div>
-    <a class="link-strong" routerLink="/prompts/analysis">
-      View Prompts Analysis <tabler-icon icon="chevron-right" [size]="16" />
-    </a>
+<!-- ============= K360 Overview ============= -->
+<section class="dash-section">
+  <header class="dash-section-head">
+    <span class="dash-section-icon">
+      <tabler-icon icon="chart-bar" [size]="16" />
+    </span>
+    <span class="dash-section-title">K360 Overview</span>
+    <span class="dash-section-rule"></span>
   </header>
 
-  <div class="constellation-legend">
-    @for (a of agents; track a.id) {
-      <span class="legend-item">
-        <span class="agent-dot" [attr.data-agent]="a.id"></span>
-        {{ a.name }}
-      </span>
-    }
-  </div>
+  <div class="kpi-grid">
+    @for (k of kpis; track k.title) {
+      <article class="kpi-card">
+        <h3 class="kpi-card-title">{{ k.title }}</h3>
 
-  <div class="treemap">
-    @for (row of treemap; track $index; let rowIdx = $index) {
-      <div class="treemap-row" [style.flex]="rowFlex(row)">
-        @for (t of row; track t.id) {
-          <a
-            class="treemap-cell"
-            [class.is-trending]="t.trending"
-            [class.is-hovered]="hoveredTopic()?.id === t.id"
-            [style.flex]="t.pct"
-            [style.background]="agentColor[t.agent]"
-            [routerLink]="['/prompts/analysis']"
-            [queryParams]="{ topic: t.id }"
-            (mouseenter)="hoveredTopic.set(t)"
-            (mouseleave)="hoveredTopic.set(null)"
-          >
-            <div class="cell-name">{{ t.name }}</div>
-            <div class="cell-meta">
-              <span class="cell-pct">{{ t.pct }}%</span>
-              <span class="cell-dot">·</span>
-              <span class="cell-count">{{ t.count }} prompts</span>
+        <div class="kpi-metrics">
+          @for (m of k.metrics; track $index; let i = $index) {
+            @if (i > 0) {
+              <span class="kpi-metric-sep" aria-hidden="true">|</span>
+            }
+            <div class="kpi-metric">
+              <span class="kpi-metric-value">{{ m.value }}</span>
+              @if (m.label) {
+                <span class="kpi-metric-label">{{ m.label }}</span>
+              }
+              @if (m.delta) {
+                <span class="kpi-metric-delta">{{ m.delta }}</span>
+              }
             </div>
+          }
+        </div>
 
-            @if (t.trending) {
-              <div class="cell-trending">
-                <tabler-icon icon="trending-up" [size]="12" />
-                Trending
-              </div>
-            }
-
-            <span class="cell-cta">
-              Open topic <tabler-icon icon="chevron-right" [size]="12" />
-            </span>
-
-            @if (hoveredTopic()?.id === t.id) {
-              <div class="topic-tooltip" [attr.data-row]="rowIdx">
-                <div class="tip-head">
-                  <span class="tip-dot" [attr.data-agent]="t.agent"></span>
-                  <span class="tip-name">{{ t.name }}</span>
-                </div>
-                <div class="tip-meta">
-                  <span>{{ t.count }} prompts</span>
-                  <span class="dot-sep">·</span>
-                  <span>{{ t.pct }}% share</span>
-                </div>
-                <div class="tip-section">Top 3 example prompts</div>
-                <ul class="tip-prompts">
-                  @for (p of t.prompts; track p) {
-                    <li>{{ p }}</li>
-                  }
-                </ul>
-              </div>
-            }
-          </a>
+        @if (k.sub) {
+          <p class="kpi-card-sub">{{ k.sub }}</p>
         }
-      </div>
-    }
-  </div>
-
-  <div class="insight-rotator">
-    @for (msg of insights; track $index; let i = $index) {
-      <p class="insight" [class.is-active]="insightIndex() === i">
-        <tabler-icon icon="sparkles" [size]="14" />
-        <span>{{ msg }}</span>
-      </p>
+      </article>
     }
   </div>
 </section>
 
+<!-- ============= K360 by Region / Country ============= -->
+<section class="dash-section dash-section--fill">
+  <header class="dash-section-head">
+    <span class="dash-section-icon">
+      <tabler-icon icon="chart-bar" [size]="16" />
+    </span>
+    <span class="dash-section-title">K360 by Region/Country</span>
+    <span class="dash-section-rule"></span>
+  </header>
+
+  <div
+    class="region-panel"
+    [class.is-drawer-open]="countryPanelOpen()"
+    [class.mode-region]="mapMode() === 'region'"
+    [style.--drawer-w.px]="drawerWidth()"
+  >
+    <div class="map-mode-toggle" role="tablist" aria-label="Map mode">
+      <button
+        type="button"
+        class="mode-btn"
+        role="tab"
+        [class.is-active]="mapMode() === 'region'"
+        [attr.aria-selected]="mapMode() === 'region'"
+        (click)="setMapMode('region')"
+      >
+        <tabler-icon icon="affiliate" [size]="13" />
+        By Region
+      </button>
+      <button
+        type="button"
+        class="mode-btn"
+        role="tab"
+        [class.is-active]="mapMode() === 'country'"
+        [attr.aria-selected]="mapMode() === 'country'"
+        (click)="setMapMode('country')"
+      >
+        <tabler-icon icon="flag" [size]="13" />
+        By Country
+      </button>
+    </div>
+
+    <div
+      #mapHost
+      class="region-map-wrap"
+      [class.is-panning]="isPanning()"
+      role="img"
+      aria-label="Click a country to view detail. Drag to pan, scroll to zoom."
+      (wheel)="onWheel($event)"
+      (mousedown)="onPanStart($event)"
+      (mousemove)="onPanMove($event)"
+      (mouseup)="onPanEnd()"
+      (mouseleave)="onPanEnd()"
+      (click)="onMapClick($event)"
+    >
+      <div
+        class="map-pan"
+        [style.transform]="mapTransform()"
+        [innerHTML]="mapSvg()"
+      ></div>
+
+      <div class="map-zoom-ctrls" aria-label="Zoom controls">
+        <button type="button" (click)="zoomIn()"    aria-label="Zoom in">
+          <tabler-icon icon="plus" [size]="14" />
+        </button>
+        <button type="button" (click)="zoomOut()"   aria-label="Zoom out">
+          <tabler-icon icon="minus" [size]="14" />
+        </button>
+        <button type="button" (click)="resetView()" aria-label="Reset view">
+          <tabler-icon icon="refresh" [size]="14" />
+        </button>
+      </div>
+
+      <!-- Usage intensity legend — color darkness = higher K360 usage -->
+      <div class="map-legend" aria-label="Usage intensity legend">
+        <span class="map-legend-label">Less usage</span>
+        <span class="map-legend-ramp">
+          <span class="map-legend-swatch" data-intensity="0"></span>
+          <span class="map-legend-swatch" data-intensity="1"></span>
+          <span class="map-legend-swatch" data-intensity="2"></span>
+          <span class="map-legend-swatch" data-intensity="3"></span>
+          <span class="map-legend-swatch" data-intensity="4"></span>
+          <span class="map-legend-swatch" data-intensity="5"></span>
+          <span class="map-legend-swatch" data-intensity="6"></span>
+        </span>
+        <span class="map-legend-label">More usage</span>
+      </div>
+    </div>
+
+    <!-- Right-side country drawer -->
+    <aside
+      class="country-drawer"
+      [class.is-open]="countryPanelOpen()"
+      [style.width.px]="drawerWidth()"
+      [attr.aria-hidden]="!countryPanelOpen()"
+      aria-label="Country detail"
+    >
+      <div
+        class="drawer-resize-handle"
+        role="separator"
+        aria-orientation="vertical"
+        aria-label="Resize drawer"
+        (mousedown)="onDrawerResizeStart($event)"
+        (window:mousemove)="onDrawerResizeMove($event)"
+        (window:mouseup)="onDrawerResizeEnd()"
+      ></div>
+
+      <header class="country-detail-head">
+        <span class="country-flag" aria-hidden="true">{{ selectedCountry().flag }}</span>
+        <span class="country-detail-name">{{ selectedCountry().name }}</span>
+        <span class="country-rank-badge">#{{ selectedCountry().queryRank }} in queries</span>
+        <button class="country-detail-close" type="button" (click)="closeCountryPanel()" aria-label="Close">
+          <tabler-icon icon="x" [size]="16" />
+        </button>
+      </header>
+
+      <div class="country-pills">
+        <span class="country-pill">{{ selectedCountry().region }}</span>
+        <span class="country-pill">{{ selectedCountry().income }}</span>
+      </div>
+
+      <div class="cstat-grid">
+        @for (s of selectedCountry().stats; track $index) {
+          <div class="cstat-cell">
+            <span class="cstat-value">{{ s.value }}</span>
+            <span class="cstat-label">{{ s.label }}</span>
+          </div>
+        }
+      </div>
+
+      <p class="country-vpus">
+        <span class="country-vpus-label">Top VPUs:</span>
+        <strong>{{ selectedCountry().topVpus.join(', ') }}</strong>
+      </p>
+
+      <div class="kpt-tabs">
+        @for (tab of kptTabDefs; track tab.id) {
+          <button
+            type="button"
+            class="kpt-tab"
+            [class.is-active]="activeTab() === tab.id"
+            (click)="activeTab.set(tab.id)"
+          >{{ tab.label }}</button>
+        }
+      </div>
+
+      <div class="kstat-row">
+        @for (s of activeTabData().stats; track $index) {
+          <div class="kstat-cell">
+            <span class="kstat-value">{{ s.value }}</span>
+            <span class="kstat-label">{{ s.label }}</span>
+          </div>
+        }
+      </div>
+
+      <!-- Per-tab pill list (Top Prompt Topics / Top Roles Searched) -->
+      <section class="drawer-section">
+        <header class="drawer-section-head">
+          <span>{{ activeTabData().pills.label }}</span>
+          <a class="link-strong" routerLink="/prompts" [queryParams]="viewQueryParams()">
+            View Prompts <tabler-icon icon="chevron-right" [size]="14" />
+          </a>
+        </header>
+        <div class="topic-pills">
+          @for (p of activeTabData().pills.items; track p) {
+            <a
+              class="topic-pill"
+              [routerLink]="activeTabData().pills.link"
+              [queryParams]="pillQueryParamsForLabel(activeTab(), p)"
+            >{{ p }}</a>
+          }
+        </div>
+      </section>
+
+      <!-- Top Collections (country-level) -->
+      <section class="drawer-section">
+        <header class="drawer-section-head">
+          <span>Top Collections</span>
+          <a class="link-strong" routerLink="/assets" [queryParams]="viewQueryParams()">
+            View Collections <tabler-icon icon="chevron-right" [size]="14" />
+          </a>
+        </header>
+        <div class="collection-list">
+          @for (c of selectedCountry().topCollections; track c.name) {
+            <a class="collection-row" [routerLink]="['/assets/collection', slugFor(c.name)]">
+              <span class="collection-name">{{ c.name }}</span>
+              <span class="collection-views">{{ c.views }} views</span>
+            </a>
+          }
+        </div>
+      </section>
+
+      <!-- Top Agents (per-tab; bar shows usage %) -->
+      <section class="drawer-section">
+        <header class="drawer-section-head">
+          <span>Top Agents</span>
+          <a class="link-strong" routerLink="/assets" [queryParams]="viewQueryParams({ tab: 'agents' })">
+            View Agents <tabler-icon icon="chevron-right" [size]="14" />
+          </a>
+        </header>
+        <div class="agent-list">
+          @for (a of activeTabData().topAgents; track a.name) {
+            <a class="agent-row" [routerLink]="['/assets/agent', slugFor(a.name)]">
+              <span class="agent-name">{{ a.name }}</span>
+              <div class="agent-bar">
+                <span class="agent-bar-fill" [style.width.%]="a.pct"></span>
+              </div>
+              <span class="agent-pct">{{ a.pct }}%</span>
+            </a>
+          }
+        </div>
+      </section>
+
+      <!-- Feedback Provided (country-level) -->
+      <section class="drawer-section">
+        <header class="drawer-section-head">
+          <span>Feedback Provided</span>
+          <a class="link-strong" routerLink="/feedback" [queryParams]="viewQueryParams()">
+            View Feedback <tabler-icon icon="chevron-right" [size]="14" />
+          </a>
+        </header>
+        <div class="feedback-cards">
+          <div class="feedback-card feedback-card--positive">
+            <tabler-icon icon="thumb-up" [size]="20" />
+            <div>
+              <div class="feedback-value">{{ selectedCountry().feedback.positive }}%</div>
+              <div class="feedback-label">positive feedback</div>
+            </div>
+          </div>
+          <div class="feedback-card feedback-card--negative">
+            <tabler-icon icon="thumb-down" [size]="20" />
+            <div>
+              <div class="feedback-value">{{ selectedCountry().feedback.negative }}%</div>
+              <div class="feedback-label">negative feedback</div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </aside>
+  </div>
+</section>

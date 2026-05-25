@@ -1,6 +1,7 @@
-import { Component, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { TablerIconComponent } from '@tabler/icons-angular';
+import { AiChatService } from './shared/ai-chat.service';
 
 interface NavLink {
   label: string;
@@ -30,70 +31,112 @@ export class App {
     { label: 'Home', icon: 'home', route: '/' },
     { label: 'Assets', icon: 'database', route: '/assets' },
     { label: 'Prompts', icon: 'messages', route: '/prompts' },
-    { label: 'Users', icon: 'users', route: '/users' },
-    { label: 'Feedback', icon: 'message-report', route: '/feedback' },
+    { label: 'Users', icon: 'users-group', route: '/users' },
+    { label: 'Feedback', icon: 'message-check', route: '/feedback' },
   ];
 
   readonly footerLinks: NavLink[] = [
     { label: 'Help', icon: 'help-circle' },
-    { label: 'Switch workspace', icon: 'arrows-right-left' },
   ];
 
   toggle() {
     this.expanded.update((v) => !v);
   }
 
-  // ---- Ask AI panel ----
-  readonly aiOpen = signal(false);
-  readonly aiInput = signal('');
+  // ---- Ask AI panel (state lives in shared service so any page can open it) ----
+  private readonly chat = inject(AiChatService);
+  readonly aiOpen = this.chat.isOpen;
+  readonly aiInput = this.chat.input;
 
-  readonly aiMessages: AiMessage[] = [
-    {
-      role: 'user',
-      text: 'Why is "Policies & Guidelines" the largest category in the Knowledge breakdown?',
-    },
-    {
-      role: 'ai',
-      sections: [
-        {
-          type: 'p',
-          text: '"Policies & Guidelines" accounts for 17% of total prompt volume this month — the highest within the Knowledge theme.',
-        },
-        { type: 'p', text: 'Drilldown shows:' },
-        {
-          type: 'bullets',
-          items: [
-            'Most activity relates to Governance & Compliance subcategories',
-            '62% of negative feedback is concentrated in this area',
-            'Many prompts request procedural clarification rather than summaries',
-          ],
-        },
-        {
-          type: 'p',
-          text: 'This suggests users are relying on the platform for operational decision support, not just reference lookup.',
-        },
-      ],
-      sourcesCount: 3,
-    },
-    {
-      role: 'user',
-      text: 'Are there any emerging topics gaining traction over the past 30 days?',
-    },
+  // Empty by default — the panel opens with the welcome state until the user sends a message.
+  readonly aiMessages = signal<AiMessage[]>([]);
+
+  readonly aiSuggestions: string[] = [
+    'Which region is adoption picking up in?',
+    "What's driving the negative feedback spike this period?",
+    'Where are the biggest content gaps in K360?',
   ];
 
-  toggleAi() {
-    this.aiOpen.update((v) => !v);
+  useSuggestion(text: string) {
+    this.chat.setInput(text);
   }
 
-  openAi() {
-    this.aiOpen.set(true);
+  sendMessage() {
+    const text = this.aiInput().trim();
+    if (!text) return;
+
+    this.aiMessages.update((msgs) => [...msgs, { role: 'user', text }]);
+    this.chat.setInput('');
+
+    setTimeout(() => {
+      this.aiMessages.update((msgs) => [...msgs, this.mockResponse(text)]);
+    }, 700);
   }
 
-  closeAi() {
-    this.aiOpen.set(false);
+  private mockResponse(prompt: string): AiMessage {
+    const t = prompt.toLowerCase();
+
+    if (t.includes('region') && t.includes('adopt')) {
+      return {
+        role: 'ai',
+        sections: [
+          { type: 'p', text: 'Adoption is picking up fastest in AFW and SAR this period.' },
+          { type: 'bullets', items: [
+            'AFW (Western and Central Africa) — top 3 VPUs by visits: AFWW1 (100), AFCE2 (92), AFCE1 (86)',
+            'SAR (South Asia) — strong India contribution (4,100 queries)',
+            'ECA shows moderate uplift, driven by expertise search and TOR generation',
+          ] },
+          { type: 'p', text: 'Knowledge-domain queries dominate in AFW (Ghana focus); SAR is split across Knowledge and Tasks.' },
+        ],
+        sourcesCount: 4,
+      };
+    }
+
+    if (t.includes('negative') || t.includes('spike') || t.includes('feedback')) {
+      return {
+        role: 'ai',
+        sections: [
+          { type: 'p', text: 'The negative spike is concentrated in TOR Generation (142 affected prompts).' },
+          { type: 'bullets', items: [
+            'Macroeconomic Research — 86 prompts, no dedicated collection',
+            'Expert & People Discovery · ECA — 54 prompts, Sherlock profile gaps',
+            'Top drivers: "Not factually correct" and "Did not follow instructions" — both Tasks-tagged',
+          ] },
+          { type: 'p', text: 'TOR Genie has the highest weighted impact score (619). Recommend prioritising review of TOR drafting failures before broader fixes.' },
+        ],
+        sourcesCount: 3,
+      };
+    }
+
+    if (t.includes('content gap') || t.includes('collection') || t.includes('coverage')) {
+      return {
+        role: 'ai',
+        sections: [
+          { type: 'p', text: 'Three significant content gaps surfaced this period:' },
+          { type: 'bullets', items: [
+            'Macroeconomic Research — 56 prompts, no dedicated collection',
+            'Housing Finance · LCR — 18 prompts, no dedicated collection',
+            'Port Governance — 14 prompts, no dedicated collection',
+          ] },
+          { type: 'p', text: 'High demand with zero K360 supply. Consider dedicated collections or routing to Sherlock with enriched expert profiles.' },
+        ],
+        sourcesCount: 5,
+      };
+    }
+
+    return {
+      role: 'ai',
+      sections: [
+        { type: 'p', text: 'Looking across your K360 metrics for Jan – May 2026:' },
+        { type: 'p', text: 'Total usage 28,912 visits with 3,095 unique active staff (16.73% adoption). Retention is strong at 83.88%, and TOR Generation is the dominant agent by volume.' },
+        { type: 'p', text: 'For a deeper drill-down, try one of the suggested prompts or specify a topic, agent, or region.' },
+      ],
+      sourcesCount: 2,
+    };
   }
 
-  setAiInput(value: string) {
-    this.aiInput.set(value);
-  }
+  toggleAi() { this.chat.toggle(); }
+  openAi()   { this.chat.open(); }
+  closeAi()  { this.chat.close(); }
+  setAiInput(value: string) { this.chat.setInput(value); }
 }

@@ -1,8 +1,7 @@
 import { Component, computed, signal } from '@angular/core';
 import { TablerIconComponent } from '@tabler/icons-angular';
 
-type FilterName = 'date' | 'country' | 'vertical' | 'sector' | null;
-type DateMode = 'month' | 'year';
+type FilterName = 'date' | 'country' | 'vpu' | 'sector' | null;
 
 interface CountryGroup {
   code: string;
@@ -20,20 +19,19 @@ export class FilterBar {
   readonly openFilter = signal<FilterName>(null);
   readonly searchQuery = signal('');
 
-  // Date
-  readonly dateMode = signal<DateMode>('month');
-  readonly dateYear = signal(2025);
-  readonly dateMonth = signal(1);
+  // Date Range (presets)
+  readonly dateRanges = [
+    'Last 7 Days',
+    'Last 30 Days',
+    'Dec 2025 – Jan 2026',
+    'Jan – May 2026',
+    'Custom Range',
+  ];
+  readonly selectedDate = signal('Jan – May 2026');
 
-  // Other filters
-  readonly selectedCountry = signal('All Countries');
-  readonly selectedVertical = signal('All Verticals');
-  readonly selectedSector = signal('All Sectors');
+  // Country (grouped by region — unchanged)
+  readonly selectedCountry = signal('Global');
 
-  readonly months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  readonly years = [2020, 2021, 2022, 2023, 2024, 2025, 2026];
-
-  // Countries grouped by World Bank region
   readonly countryGroups: CountryGroup[] = [
     {
       code: 'AFR',
@@ -77,59 +75,31 @@ export class FilterBar {
     },
   ];
 
-  readonly verticals = [
-    'All Verticals',
-    'Macroeconomics, Trade & Investment (MTI)',
-    'Finance, Competitiveness & Innovation (FCI)',
-    'Infrastructure',
-    'Human Development',
-    'Poverty & Equity',
-    'Environment & Natural Resources',
-    'Governance',
-    'Agriculture & Food',
-    'Urban, Resilience & Land',
-    'Gender',
+  // VPU (top 13 by visit volume)
+  readonly selectedVpu = signal('All');
+  readonly vpus = [
+    'All', 'AFWW1', 'AFCE2', 'AFCE1', 'AECE1', 'AECE2',
+    'GGODR', 'AECE3', 'SACFP', 'MNCGE', 'MNCPX', 'MNCMU', 'EACES', 'AFCW2',
   ];
 
+  // Sector
+  readonly selectedSector = signal('All');
   readonly sectors = [
-    'All Sectors',
-    'Energy',
-    'Transport',
-    'Water & Sanitation',
-    'Digital',
-    'Education',
-    'Health',
-    'Social Protection',
-    'Agriculture',
-    'Forestry & Natural Resources',
-    'Public Administration',
-    'Financial Markets',
+    'All', 'Digital and AI', 'Infrastructure', 'People',
+    'Planet', 'Prosperity', 'Fragility and Conflict', 'Other',
   ];
 
-  readonly dateLabel = computed(() => {
-    if (this.dateMode() === 'year') return String(this.dateYear());
-    return `${this.months[this.dateMonth()]} ${this.dateYear()}`;
-  });
 
-  readonly countryLabel = computed(() => {
-    const c = this.selectedCountry();
-    return c === 'All Countries' ? 'All' : c;
-  });
+  // Computed labels
+  readonly dateLabel = computed(() => this.selectedDate());
 
-  readonly verticalLabel = computed(() => {
-    const v = this.selectedVertical();
-    if (v === 'All Verticals') return 'All';
-    const acronym = v.match(/\(([A-Z]{2,5})\)$/);
-    if (acronym) return acronym[1];
-    const idx = v.indexOf(' (');
-    return idx > -1 ? v.slice(0, idx) : v;
-  });
+  readonly countryLabel = computed(() => this.selectedCountry());
 
-  readonly sectorLabel = computed(() => {
-    const s = this.selectedSector();
-    return s === 'All Sectors' ? 'All' : s;
-  });
+  readonly vpuLabel = computed(() => this.selectedVpu());
 
+  readonly sectorLabel = computed(() => this.selectedSector());
+
+  // Filtered lists (for search)
   readonly filteredCountryGroups = computed(() => {
     const q = this.searchQuery().trim().toLowerCase();
     if (!q) return this.countryGroups;
@@ -143,40 +113,29 @@ export class FilterBar {
       .filter((g) => g.countries.length > 0);
   });
 
-  readonly filteredVerticals = computed(() => {
+  readonly filteredVpus = computed(() => {
     const q = this.searchQuery().trim().toLowerCase();
-    if (!q) return this.verticals;
-    return this.verticals.filter((v) => v.toLowerCase().includes(q));
-  });
-
-  readonly filteredSectors = computed(() => {
-    const q = this.searchQuery().trim().toLowerCase();
-    if (!q) return this.sectors;
-    return this.sectors.filter((s) => s.toLowerCase().includes(q));
+    if (!q) return this.vpus;
+    return this.vpus.filter((v) => v.toLowerCase().includes(q));
   });
 
   readonly hasCountryMatches = computed(() => this.filteredCountryGroups().length > 0);
+  readonly hasVpuMatches = computed(() => this.filteredVpus().length > 0);
 
   toggleFilter(name: Exclude<FilterName, null>) {
     this.openFilter.update((c) => (c === name ? null : name));
     this.searchQuery.set('');
   }
+
   closeFilter() {
     this.openFilter.set(null);
     this.searchQuery.set('');
   }
-  onSearchInput(value: string) {
-    this.searchQuery.set(value);
-  }
 
-  setDateMode(m: DateMode) { this.dateMode.set(m); }
-  stepYear(d: number) { this.dateYear.update((y) => y + d); }
-  pickMonth(i: number) { this.dateMonth.set(i); this.closeFilter(); }
-  pickYear(y: number) {
-    this.dateYear.set(y);
-    if (this.dateMode() === 'year') this.closeFilter();
-  }
+  onSearchInput(value: string) { this.searchQuery.set(value); }
+
+  pickDate(r: string)    { this.selectedDate.set(r);    this.closeFilter(); }
   pickCountry(c: string) { this.selectedCountry.set(c); this.closeFilter(); }
-  pickVertical(v: string) { this.selectedVertical.set(v); this.closeFilter(); }
-  pickSector(s: string) { this.selectedSector.set(s); this.closeFilter(); }
+  pickVpu(v: string)     { this.selectedVpu.set(v);     this.closeFilter(); }
+  pickSector(s: string)  { this.selectedSector.set(s);  this.closeFilter(); }
 }

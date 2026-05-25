@@ -12,6 +12,16 @@ export const routes: Routes = [
     loadComponent: () => import('./assets/assets').then((m) => m.Assets),
   },
   {
+    path: 'assets/collection/:slug',
+    loadComponent: () =>
+      import('./assets/collection-detail/collection-detail').then((m) => m.CollectionDetail),
+  },
+  {
+    path: 'assets/agent/:slug',
+    loadComponent: () =>
+      import('./assets/agent-detail/agent-detail').then((m) => m.AgentDetail),
+  },
+  {
     path: 'prompts',
     loadComponent: () =>
       import('./prompts/prompts').then((m) => m.Prompts),
@@ -20,6 +30,11 @@ export const routes: Routes = [
     path: 'prompts/analysis',
     loadComponent: () =>
       import('./prompts/analysis/analysis').then((m) => m.Analysis),
+  },
+  {
+    path: 'prompts/agents',
+    loadComponent: () =>
+      import('./prompts/agents/agents').then((m) => m.AgentsAnalysis),
   },
   {
     path: 'users',

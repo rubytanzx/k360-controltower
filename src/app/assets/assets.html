@@ -1,194 +1,222 @@
 <header class="page-header">
-  @if (tab() === 'collections') {
-    <div>
-      <h1 class="title">Knowledge Collections</h1>
-      <p class="subtitle">Content coverage, freshness &amp; demand alignment</p>
-    </div>
-  } @else {
+  <div class="page-header-title">
     <h1 class="title">Assets Overview</h1>
-  }
+    <p class="page-subtitle">Review collection health, agent performance</p>
+  </div>
+
+  <div class="assets-filter-bar">
+    <app-hier-filter
+      placeholder="Select Region/Country"
+      [groups]="regionGroups"
+      [initialSelected]="initialRegionCountry"
+    />
+    <app-hier-filter placeholder="Select Vertical/Sector" [groups]="verticalGroups" />
+    <app-hier-filter placeholder="Select VPUs"            [groups]="vpuGroups" />
+    <app-date-range-filter />
+  </div>
 </header>
 
 <nav class="tabs">
   <button
     class="tab"
+    [class.is-active]="tab() === 'collections'"
+    (click)="setTab('collections')"
+  >Collections</button>
+  <button
+    class="tab"
     [class.is-active]="tab() === 'agents'"
     (click)="setTab('agents')"
   >Agents</button>
-  <button
-    class="tab"
-    [class.is-active]="tab() === 'collections'"
-    (click)="setTab('collections')"
-  >Ingested Collections</button>
 </nav>
 
 @if (tab() === 'collections') {
-  <section class="kc-kpi-grid">
-    @for (k of collectionKpis; track k.title) {
-      <article class="kc-kpi" [attr.data-tone]="k.tone">
-        <header class="kc-kpi-head">
-          <span class="kc-kpi-title">{{ k.title }}</span>
-          <span class="kc-kpi-icon">
-            <tabler-icon [icon]="k.icon" [size]="18" />
-          </span>
-        </header>
-        <div class="kc-kpi-row">
-          <span class="kc-kpi-value">{{ k.value }}</span>
-          <span class="kc-kpi-sub">{{ k.sub }}</span>
+  <!-- KPI cards — reuse the homepage .kpi-card / .kpi-grid components -->
+  <section class="kpi-grid kpi-grid--4">
+    @for (k of overviewKpis; track k.title) {
+      <article class="kpi-card">
+        <h3 class="kpi-card-title">{{ k.title }}</h3>
+        <div class="kpi-metrics">
+          @for (m of k.metrics; track $index) {
+            <div class="kpi-metric">
+              <span class="kpi-metric-value">{{ m.value }}</span>
+              @if (m.label) { <span class="kpi-metric-label">{{ m.label }}</span> }
+              @if (m.delta) { <span class="kpi-metric-delta">{{ m.delta }}</span> }
+            </div>
+          }
         </div>
-        <div class="kc-kpi-bar">
-          <div class="kc-kpi-bar-fill" [style.width.%]="k.pct"></div>
-        </div>
+        @if (k.sub) {
+          <p class="kpi-card-sub">{{ k.sub }}</p>
+        }
       </article>
     }
   </section>
 
-  <section class="inventory-card">
-    <header class="inventory-head">
-      <h2 class="inventory-title">Collection Registry</h2>
-
-      <div class="inventory-filters">
-        <div class="filter" [class.is-open]="statusOpen()">
+  <!-- Global Usage map | VPU Usage panel -->
+  <section class="cd-panels cd-panels--two">
+    <article class="cd-panel">
+      <header class="cd-panel-head-row">
+        <h3 class="cd-panel-title">Global Usage</h3>
+        <div class="cd-map-toggle">
           <button
-            class="filter-trigger"
             type="button"
-            (click)="toggleStatusOpen()"
+            class="cd-map-btn"
+            [class.is-active]="mapMode() === 'region'"
+            (click)="setMapMode('region')"
           >
-            <tabler-icon icon="check" [size]="14" />
-            <span class="filter-label">{{ statusFilterLabel() }}</span>
-            <tabler-icon icon="chevron-down" [size]="14" class="caret" />
+            <tabler-icon icon="affiliate" [size]="13" />
+            By Region
           </button>
-          @if (statusOpen()) {
-            <div class="dropdown-backdrop" (click)="closeStatusFilter()"></div>
-            <div class="dropdown list-dropdown" role="listbox" style="min-width: 200px;">
-              @for (o of statusOptions; track o.id) {
-                <button
-                  type="button"
-                  class="dropdown-item"
-                  [class.is-active]="statusFilter() === o.id"
-                  (click)="pickStatus(o.id)"
-                >
-                  <span class="item-text">{{ o.label }}</span>
-                  @if (statusFilter() === o.id) {
-                    <tabler-icon icon="check" [size]="14" />
-                  }
-                </button>
-              }
-            </div>
-          }
+          <button
+            type="button"
+            class="cd-map-btn"
+            [class.is-active]="mapMode() === 'country'"
+            (click)="setMapMode('country')"
+          >
+            <tabler-icon icon="flag" [size]="13" />
+            By Country
+          </button>
         </div>
+      </header>
+      <div
+        #mapHost
+        class="cd-map"
+        [class.is-panning]="isMapPanning()"
+        (wheel)="onMapWheel($event)"
+        (mousedown)="onMapPanStart($event)"
+        (mousemove)="onMapPanMove($event)"
+        (mouseup)="onMapPanEnd()"
+        (mouseleave)="onMapPanEnd()"
+        (click)="onMapClick($event)"
+      >
+        <div
+          class="cd-map-pan"
+          [style.transform]="mapTransform()"
+          [innerHTML]="mapSvg()"
+        ></div>
 
-        <button
-          class="quick-chip"
-          [class.is-active]="activeChip() === 'high-demand'"
-          (click)="toggleChip('high-demand')"
-        >High Demand</button>
-        <button
-          class="quick-chip is-danger"
-          [class.is-active]="activeChip() === 'outdated'"
-          (click)="toggleChip('outdated')"
-        >Outdated (3)</button>
-        <button
-          class="quick-chip"
-          [class.is-active]="activeChip() === 'newly-ingested'"
-          (click)="toggleChip('newly-ingested')"
-        >Newly Ingested</button>
+        <div class="cd-map-zoom">
+          <button type="button" (click)="mapZoomIn(); $event.stopPropagation()"    aria-label="Zoom in">
+            <tabler-icon icon="plus" [size]="14" />
+          </button>
+          <button type="button" (click)="mapZoomOut(); $event.stopPropagation()"   aria-label="Zoom out">
+            <tabler-icon icon="minus" [size]="14" />
+          </button>
+          <button type="button" (click)="mapResetView(); $event.stopPropagation()" aria-label="Reset view">
+            <tabler-icon icon="refresh" [size]="14" />
+          </button>
+        </div>
       </div>
+
+      @if (mapSelection(); as sel) {
+        <div class="cd-map-tooltip">
+          <div class="cd-map-tooltip-name">{{ sel.name }}</div>
+          <div class="cd-map-tooltip-value">{{ sel.queries }} queries</div>
+        </div>
+      }
+    </article>
+
+    <article class="cd-panel">
+      <h3 class="cd-panel-title">VPU Usage</h3>
+
+      <div class="vpu-headline">
+        <span class="vpu-headline-value">{{ vpuUsage.reaches }}</span>
+        <span class="vpu-headline-suffix">of {{ vpuUsage.totalVpus }} VPUs</span>
+        <span class="vpu-headline-sub">accessed at least one collection</span>
+      </div>
+
+      <ul class="vpu-list">
+        @for (v of vpuUsage.top; track v.code) {
+          <li class="vpu-row">
+            <span class="vpu-row-code">{{ v.code }}</span>
+            <span class="vpu-row-name">{{ v.name }}</span>
+            <span class="vpu-row-bar">
+              <span class="vpu-row-bar-fill" [style.width.%]="v.pct"></span>
+            </span>
+            <span class="vpu-row-pct">{{ v.pct }}%</span>
+          </li>
+        }
+      </ul>
+    </article>
+  </section>
+
+  <section class="registry-card">
+    <header class="registry-head">
+      <h2 class="registry-title">Collection Registry</h2>
     </header>
 
-    <table class="inventory-table">
+    <table class="registry-table">
       <thead>
         <tr>
-          <th class="col-name">Collection</th>
-          <th class="col-type">Type</th>
-          <th class="col-cov">Coverage</th>
-          <th class="col-sync">Last Synced</th>
-          <th class="col-demand">Demand</th>
-          <th class="col-actions"></th>
+          @for (col of [
+            { key: 'name',        label: 'Name'            },
+            { key: 'status',      label: 'Curation Status' },
+            { key: 'verticals',   label: 'Vertical(s)'     },
+            { key: 'sectors',     label: 'Sector(s)'       },
+            { key: 'lastUpdated', label: 'Last Updated'    },
+            { key: 'utilization', label: 'Utilization Rate'},
+            { key: 'queries',     label: 'Total Queries'   }
+          ]; track col.key) {
+            <th>
+              <button type="button" class="reg-sort-th" (click)="toggleRegSort($any(col.key))">
+                {{ col.label }}
+                <tabler-icon
+                  class="reg-sort-caret"
+                  [class.is-active]="regSortKey() === col.key"
+                  [icon]="regSortKey() === col.key && regSortDir() === 'asc' ? 'arrow-up' : 'arrow-down'"
+                  [size]="12"
+                />
+              </button>
+            </th>
+          }
         </tr>
       </thead>
       <tbody>
-        @for (c of filteredCollections(); track c.name) {
-          <tr class="collection-row" (click)="openCollectionDrawer(c)">
-            <td class="col-name">
-              <div class="name-cell">
-                <span class="name-icon" [attr.data-type]="c.type">
-                  <tabler-icon [icon]="c.icon" [size]="18" />
-                </span>
-                <div>
-                  <div class="name-main">{{ c.name }}</div>
-                  <div class="name-sub" [attr.data-status]="c.status">
-                    {{ statusLabel(c.status) }}
-                  </div>
-                </div>
-              </div>
-            </td>
-            <td class="col-type">{{ c.type }}</td>
-            <td class="col-cov">
-              <div class="cov-cell">
-                <span class="cov-pct">{{ c.coverage }}%</span>
-                <div class="cov-bar">
-                  <div
-                    class="cov-bar-fill"
-                    [attr.data-tier]="c.coverage >= 80 ? 'good' : c.coverage >= 40 ? 'warn' : 'bad'"
-                    [style.width.%]="c.coverage"
-                  ></div>
-                </div>
-              </div>
-            </td>
-            <td class="col-sync">
-              <span class="sync-label" [attr.data-freshness]="c.freshness">
-                {{ c.lastSynced }}
-              </span>
-            </td>
-            <td class="col-demand">
-              <span class="demand-pill" [attr.data-demand]="c.demand">
-                {{ demandLabel(c.demand) }}
-              </span>
-            </td>
-            <td class="col-actions">
-              <button
-                class="row-action"
-                aria-label="More"
-                (click)="$event.stopPropagation()"
-              >
-                <tabler-icon icon="dots-vertical" [size]="16" />
-              </button>
-            </td>
+        @for (r of sortedRegistry(); track r.name) {
+          <tr class="registry-row" [routerLink]="['/assets/collection', slugFor(r.name)]">
+            <td><a class="reg-cell-link" [routerLink]="['/assets/collection', slugFor(r.name)]">{{ r.name }}</a></td>
+            <td><span class="reg-cell-link">{{ r.status }}</span></td>
+            <td><span class="reg-cell-link">{{ r.verticals.join(', ') }}</span></td>
+            <td><span class="reg-cell-link">{{ r.sectors.join(', ') }}</span></td>
+            <td><span class="reg-cell-link">{{ r.lastUpdatedDisplay }}</span></td>
+            <td><span class="reg-cell-link">{{ r.utilization }}%</span></td>
+            <td><span class="reg-cell-link">{{ formatQueries(r.queries) }}</span></td>
           </tr>
         }
       </tbody>
     </table>
-
-    <footer class="inventory-foot">
-      <span class="pager-info">
-        Showing 1-{{ filteredCollections().length }} of {{ collectionsTotal }} collections
-      </span>
-      <div class="pager">
-        <button class="pager-btn" aria-label="Previous">
-          <tabler-icon icon="chevron-left" [size]="14" />
-        </button>
-        <button class="pager-btn is-active">1</button>
-        <button class="pager-btn">2</button>
-        <button class="pager-btn">3</button>
-        <span class="pager-ellipsis">…</span>
-        <button class="pager-btn" aria-label="Next">
-          <tabler-icon icon="chevron-right" [size]="14" />
-        </button>
-      </div>
-    </footer>
   </section>
 }
 
+
 @if (tab() === 'agents') {
+<!-- Agents KPIs (homepage-style cards) -->
+<section class="kpi-grid kpi-grid--4">
+  @for (k of agentsKpis; track k.title) {
+    <article class="kpi-card">
+      <h3 class="kpi-card-title">{{ k.title }}</h3>
+      <div class="kpi-metrics">
+        @for (m of k.metrics; track $index) {
+          <div class="kpi-metric">
+            <span class="kpi-metric-value">{{ m.value }}</span>
+            @if (m.label) { <span class="kpi-metric-label">{{ m.label }}</span> }
+            @if (m.delta) { <span class="kpi-metric-delta">{{ m.delta }}</span> }
+          </div>
+        }
+      </div>
+      @if (k.sub) {
+        <p class="kpi-card-sub">{{ k.sub }}</p>
+      }
+    </article>
+  }
+</section>
+
 <section class="canvas-card">
+  <header class="canvas-head">
+    <h2 class="canvas-title">Agent Breakdown</h2>
+  </header>
+
   <header class="canvas-toolbar">
     <div class="summary-pills">
-      <span class="summary-pill total">
-        <tabler-icon icon="users" [size]="14" />
-        {{ summaryLabel() }}
-        <span class="pill-dot info"></span>{{ current().agentsCount }}
-      </span>
       <span class="summary-pill">
         <span class="pill-dot good"></span>{{ current().highCount }} High
       </span>
@@ -205,6 +233,7 @@
   </header>
 
   <div
+    #canvasWrap
     class="canvas-wrap"
     [class.is-dragging]="dragging()"
     [style.background-position]="bgPosition()"
@@ -242,8 +271,9 @@
           <path
             [attr.d]="line.d"
             fill="none"
-            stroke="#2c4060"
-            stroke-width="1.4"
+            [attr.stroke]="line.color"
+            stroke-width="1.6"
+            stroke-opacity="0.75"
           />
         }
       </svg>
@@ -283,7 +313,10 @@
             </span>
           }
 
-          <a class="node-review">
+          <a
+            class="node-review"
+            [routerLink]="['/assets/agent', n.id]"
+          >
             Review <tabler-icon icon="chevron-right" [size]="14" />
           </a>
         </article>
