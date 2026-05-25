@@ -153,13 +153,26 @@ export class Dashboard {
     },
   ];
 
-  // ---- K360 by Region/Country ----
+  // ---- K360 by Region / Country ----
+  // Toggle picks the map-click target (regions vs countries). The drawer
+  // itself can hold a country, region, or the global aggregate — Global is
+  // a separate button that re-seeds the drawer regardless of toggle state.
   readonly mapMode = signal<MapMode>('country');
   setMapMode(m: MapMode) { this.mapMode.set(m); }
 
-  readonly countryPanelOpen = signal(false);
+  // On load the drawer is already open and shows worldwide stats. Clicking
+  // any country/region replaces those stats; the Global button restores them.
+  readonly countryPanelOpen = signal(true);
   closeCountryPanel() { this.countryPanelOpen.set(false); }
   openCountryPanel()  { this.countryPanelOpen.set(true); }
+
+  /** Re-seed the drawer with the worldwide aggregate. Wired to the Global
+   *  button next to the By Region / By Country toggle so users can return
+   *  here from any drilled-in region or country view. */
+  resetToGlobal() {
+    this.selectedCountry.set(buildGlobalDetail());
+    this.openCountryPanel();
+  }
 
   // ---- drawer resize ----
   readonly drawerWidth = signal(460);
@@ -404,11 +417,27 @@ export class Dashboard {
   ];
   readonly activeTab = signal<KptTab>('knowledge');
 
-  // Default selection — Kenya. Every country/region detail is generated on
-  // demand by buildCountryDetail() / buildRegionDetail() from the usage map.
-  readonly selectedCountry = signal<CountryDetail>(buildCountryDetail('ke'));
+  // Default selection — the global aggregate (mapMode starts as 'global').
+  // Switching to By Region / By Country swaps this out via the map click
+  // handlers; buildCountryDetail() / buildRegionDetail() / buildGlobalDetail()
+  // all return the same CountryDetail shape.
+  readonly selectedCountry = signal<CountryDetail>(buildGlobalDetail());
 
   readonly activeTabData = computed(() => this.selectedCountry().tabs[this.activeTab()]);
+
+  /** Treemap-style cell set derived from the active tab's pill items.
+   *  Capped at 5; shares fall off geometrically by rank (first cell is biggest)
+   *  and are normalised so the listed percentages sum to ~100. */
+  readonly topicTreemap = computed<{ label: string; pct: number }[]>(() => {
+    const items = this.activeTabData().pills.items.slice(0, 5);
+    if (items.length === 0) return [];
+    const weights = items.map((_, i) => Math.pow(0.78, i));
+    const total = weights.reduce((s, w) => s + w, 0);
+    return items.map((label, i) => ({
+      label,
+      pct: Math.round((weights[i] / total) * 100),
+    }));
+  });
 }
 
 // Convert a 2-letter ISO code to its regional indicator emoji flag.
@@ -801,6 +830,117 @@ function buildRegionDetail(region: WbRegion): CountryDetail {
           { name: ctx.taskAgent, pct: 58 },
           { name: ctx.agents[1], pct: 33 },
           { name: ctx.agents[2], pct:  9 },
+        ],
+      },
+    },
+  };
+}
+
+// Global aggregate — sums across every country in ISO_TO_USAGE. Used when
+// mapMode is 'global'. Pills are drawn from the most-prominent items across
+// every regional context so the user lands with a worldwide overview.
+function buildGlobalDetail(): CountryDetail {
+  const entries = Object.entries(ISO_TO_USAGE);
+  const totalUsage = entries.reduce((s, [, u]) => s + u, 0);
+  const memberCount = entries.length;
+  const avgUsage = memberCount ? totalUsage / memberCount : 0;
+  const u = avgUsage / 100;
+
+  const activeUsers        = Math.round(totalUsage * 32);
+  const searchSuccessPct   = Math.round(66 + u * 20);
+  const retentionPct       = Math.round(74 + u * 16);
+  const avgVisits          = Math.max(1, +(3 + u * 2).toFixed(1));
+  const queries            = Math.round(totalUsage * 3.4);
+  const insights           = Math.round(queries * 0.86);
+  const searches           = Math.round(totalUsage * 5.6);
+  const profileViews       = Math.round(searches * 0.26);
+  const torDownloads       = Math.round(totalUsage * 0.6);
+  const summariesDownloads = Math.round(torDownloads * 0.78);
+  const slidesDownloads    = Math.round(torDownloads * 0.72);
+  // 69 total VPUs in the K360 catalogue — globally all are active.
+  const activeVpus         = 69;
+
+  // Worldwide top topics / roles / collections — picked from REGION_CONTEXT
+  // so the drawer feels coherent with what users see when drilling in.
+  const topTopics: string[] = [
+    'Macroeconomic Stability',
+    'Climate Adaptation & Resilience',
+    'Energy Transition',
+    'Urban Resilience',
+    'Youth Employment',
+  ];
+  const topRoles: string[] = [
+    'Sector Specialists',
+    'Macro Economists',
+    'Energy Specialists',
+    'Climate Leads',
+    'Urban Planners',
+  ];
+  const topTaskTopics: string[] = [
+    'Country Diagnostic TOR',
+    'Synthesis & Briefings',
+    'Concept Note Drafting',
+  ];
+  const topCollections = [
+    { name: 'Policy Research Working Papers', views: Math.round(queries * 1.6) },
+    { name: 'Country Economic Updates',       views: Math.round(queries * 1.2) },
+    { name: 'IFC Insights and Reports',       views: Math.round(queries * 0.8) },
+  ];
+
+  return {
+    code: 'GLOBAL',
+    name: 'Global',
+    flag: '🌍',
+    queryRank: 0,
+    region: 'All Regions',
+    income: `${memberCount} countries`,
+    stats: [
+      { value: formatNum(activeUsers), label: 'active users' },
+      { value: searchSuccessPct + '%', label: 'search success' },
+      { value: retentionPct + '%',     label: 'Retention Rate' },
+      { value: String(avgVisits),      label: 'Average Visits per User' },
+      { value: String(activeVpus),     label: 'Active VPUs' },
+      { value: 'Macroeconomics',       label: 'top sector' },
+    ],
+    topVpus: ['AFEVP', 'EAPVP', 'ECAVP'],
+    topCollections,
+    feedback: { positive: 72, negative: 28 },
+    tabs: {
+      knowledge: {
+        stats: [
+          { value: formatNum(queries),  label: 'queries' },
+          { value: formatNum(insights), label: 'synthesized insights' },
+        ],
+        pills: { label: 'Top Prompt Topics', link: '/prompts/analysis', items: topTopics },
+        topAgents: [
+          { name: 'Sherlock',         pct: 42 },
+          { name: 'Lessons Explorer', pct: 30 },
+          { name: 'TOR Genie',        pct: 18 },
+        ],
+      },
+      people: {
+        stats: [
+          { value: formatNum(searches),     label: 'searches' },
+          { value: formatNum(profileViews), label: 'Expert Profile Views' },
+        ],
+        pills: { label: 'Top Roles Searched', link: '/prompts/analysis', items: topRoles },
+        topAgents: [
+          { name: 'Sherlock',         pct: 68 },
+          { name: 'Lessons Explorer', pct: 20 },
+          { name: 'Translate',        pct: 12 },
+        ],
+      },
+      tasks: {
+        stats: [
+          { value: formatNum(torDownloads),       label: 'TOR downloads' },
+          { value: formatNum(summariesDownloads), label: 'Summaries downloads' },
+          { value: formatNum(slidesDownloads),    label: 'Slides downloads' },
+        ],
+        pills: { label: 'Top Prompt Topics', link: '/prompts/analysis', items: topTaskTopics },
+        topAgents: [
+          { name: 'TOR Genie',        pct: 52 },
+          { name: 'Sherlock',         pct: 26 },
+          { name: 'Lessons Explorer', pct: 22 },
         ],
       },
     },

@@ -42,12 +42,33 @@ interface Subcategory {
   positivePct: number;       // 0..100
 }
 
+/** One entry in the negative-feedback reason breakdown. The five standard
+ *  reasons appear in this fixed order in every prompt: instructions, factual,
+ *  offensive, language, other. */
+interface NegReasonCount { label: string; count: number; }
+
 interface SubcatPrompt {
   query: string;
-  queries: number;
+  queries: number;        // distinct queries grouped under this prompt type
   negativePct: number;
   positivePct: number;
+  // Aggregated feedback across every submission of this prompt type.
+  positiveCount: number;
+  negativeCount: number;
+  /** Fixed length 5, ordered: instructions, factual, offensive, language, other. */
+  negativeBreakdown: NegReasonCount[];
+  /** Free-text comments captured when a user picked "Other" as the reason. */
+  otherComments: string[];
 }
+
+/** Standard reason labels shown in the drawer breakdown. */
+const NEG_REASON_LABELS = [
+  'Did not Follow Instructions',
+  'Not Factually Correct',
+  'Offensive/Unsafe',
+  'Wrong Language',
+  'Other',
+] as const;
 
 interface SubcatDrawerData {
   name: string;
@@ -707,8 +728,13 @@ export class Analysis {
   resetView() { this.mapScale.set(1); this.mapTx.set(0); this.mapTy.set(0); }
 
   // ============ Subcategory drawer ============
+  // Two views: 'subcat' shows the AI insights + prompts table; 'prompt' shows
+  // negative-feedback detail for a single prompt, with a back arrow returning
+  // to the subcat view.
   readonly subDrawerSubcat = signal<Subcategory | null>(null);
   readonly subDrawerOpen = computed(() => this.subDrawerSubcat() !== null);
+  readonly subDrawerView = signal<'subcat' | 'prompt'>('subcat');
+  readonly subDrawerPrompt = signal<SubcatPrompt | null>(null);
 
   readonly subDrawerData = computed<SubcatDrawerData | null>(() => {
     const s = this.subDrawerSubcat();
@@ -724,9 +750,24 @@ export class Analysis {
 
   openSubcatDrawer(s: Subcategory) {
     this.subDrawerSubcat.set(s);
+    this.subDrawerView.set('subcat');
+    this.subDrawerPrompt.set(null);
+  }
+  openSubcatPromptDetail(p: SubcatPrompt) {
+    this.subDrawerPrompt.set(p);
+    this.subDrawerView.set('prompt');
+  }
+  backToSubcat() {
+    this.subDrawerView.set('subcat');
+    this.subDrawerPrompt.set(null);
   }
   closeSubcatDrawer() {
     this.subDrawerSubcat.set(null);
+    // Defer the view reset so the slide-out animation still shows content.
+    setTimeout(() => {
+      this.subDrawerView.set('subcat');
+      this.subDrawerPrompt.set(null);
+    }, 280);
   }
 }
 
@@ -752,24 +793,196 @@ const SUBCAT_DRAWER_DATA: Record<string, SubcatDrawerData> = {
     topVpus: ['AFW', 'AFCE1', 'AFCE2'],
     topCollections: ['Country Growth and Jobs', 'Fiscal Policy and Growth', 'Debt Sustainability Analysis'],
     prompts: [
-      // Feedback rates vary per prompt; positive + negative ≤ 100% (rest = no
-      // explicit feedback). Top prompt = #1 in Adobe (56 platform-wide; 12 here
-      // represents the slice attributed to this subcategory).
-      { query: "What are the main challenges facing Ghana’s economic growth and productivity?", queries: 12, negativePct: 18, positivePct: 70 },
-      { query: 'How is inflation impacting productivity and household spending in Ghana?',          queries:  7, negativePct: 22, positivePct: 65 },
-      { query: "What are the implications of Ghana’s debt restructuring on future investment?", queries:  6, negativePct: 25, positivePct: 62 },
-      { query: "How does cedi depreciation affect Ghana’s investment climate?",                 queries:  6, negativePct: 28, positivePct: 58 },
-      { query: "What sectors are contributing most to Ghana’s productivity slowdown?",          queries:  5, negativePct: 14, positivePct: 75 },
-      { query: 'What structural labor market issues are limiting economic growth in Ghana?',         queries:  4, negativePct: 20, positivePct: 68 },
-      { query: 'What barriers are preventing SMEs from scaling in Ghana?',                          queries:  4, negativePct: 12, positivePct: 76 },
-      { query: 'How can Ghana attract more foreign direct investment?',                             queries:  4, negativePct: 16, positivePct: 72 },
-      { query: 'How does Ghana compare to Kenya and Senegal in economic resilience?',               queries:  3, negativePct: 24, positivePct: 65 },
-      { query: "How do power and transport infrastructure gaps affect Ghana’s competitiveness?", queries: 2, negativePct: 30, positivePct: 55 },
+      // Each row represents a prompt *type* — i.e. many user submissions that
+      // share the same intent. positiveCount / negativeCount are the
+      // aggregated thumbs-up / thumbs-down totals; negativeBreakdown splits
+      // the negatives across the five standard reason labels (sum =
+      // negativeCount). otherComments are the free-text comments captured
+      // when a user chose "Other" as the reason.
+      {
+        query: "What are the main challenges facing Ghana’s economic growth and productivity?",
+        queries: 12, negativePct: 18, positivePct: 70,
+        positiveCount: 84, negativeCount: 22,
+        negativeBreakdown: [
+          { label: NEG_REASON_LABELS[0], count: 8 },
+          { label: NEG_REASON_LABELS[1], count: 7 },
+          { label: NEG_REASON_LABELS[2], count: 0 },
+          { label: NEG_REASON_LABELS[3], count: 2 },
+          { label: NEG_REASON_LABELS[4], count: 5 },
+        ],
+        otherComments: [
+          'Did not reference the latest Country Economic Update.',
+          'Wanted productivity figures from 2025, not 2022.',
+          'Missed disaggregated sector data for the AFW region.',
+        ],
+      },
+      {
+        query: 'How is inflation impacting productivity and household spending in Ghana?',
+        queries: 7, negativePct: 22, positivePct: 65,
+        positiveCount: 46, negativeCount: 15,
+        negativeBreakdown: [
+          { label: NEG_REASON_LABELS[0], count: 6 },
+          { label: NEG_REASON_LABELS[1], count: 5 },
+          { label: NEG_REASON_LABELS[2], count: 0 },
+          { label: NEG_REASON_LABELS[3], count: 1 },
+          { label: NEG_REASON_LABELS[4], count: 3 },
+        ],
+        otherComments: [
+          'Lacked breakdown by income quintile.',
+          'Did not distinguish rural vs urban households.',
+        ],
+      },
+      {
+        query: "What are the implications of Ghana’s debt restructuring on future investment?",
+        queries: 6, negativePct: 25, positivePct: 62,
+        positiveCount: 37, negativeCount: 15,
+        negativeBreakdown: [
+          { label: NEG_REASON_LABELS[0], count: 5 },
+          { label: NEG_REASON_LABELS[1], count: 6 },
+          { label: NEG_REASON_LABELS[2], count: 0 },
+          { label: NEG_REASON_LABELS[3], count: 2 },
+          { label: NEG_REASON_LABELS[4], count: 2 },
+        ],
+        otherComments: [
+          'Generic — needed Eurobond / Paris Club specifics.',
+        ],
+      },
+      {
+        query: "How does cedi depreciation affect Ghana’s investment climate?",
+        queries: 6, negativePct: 28, positivePct: 58,
+        positiveCount: 35, negativeCount: 17,
+        negativeBreakdown: [
+          { label: NEG_REASON_LABELS[0], count: 7 },
+          { label: NEG_REASON_LABELS[1], count: 6 },
+          { label: NEG_REASON_LABELS[2], count: 0 },
+          { label: NEG_REASON_LABELS[3], count: 1 },
+          { label: NEG_REASON_LABELS[4], count: 3 },
+        ],
+        otherComments: [
+          'Wanted operational FDI-pipeline impact, not policy framing.',
+          'Missed currency-hedging guidance.',
+        ],
+      },
+      {
+        query: "What sectors are contributing most to Ghana’s productivity slowdown?",
+        queries: 5, negativePct: 14, positivePct: 75,
+        positiveCount: 38, negativeCount: 7,
+        negativeBreakdown: [
+          { label: NEG_REASON_LABELS[0], count: 2 },
+          { label: NEG_REASON_LABELS[1], count: 3 },
+          { label: NEG_REASON_LABELS[2], count: 0 },
+          { label: NEG_REASON_LABELS[3], count: 0 },
+          { label: NEG_REASON_LABELS[4], count: 2 },
+        ],
+        otherComments: [
+          'Needed peer benchmarks vs Kenya, Senegal, Côte d’Ivoire.',
+        ],
+      },
+      {
+        query: 'What structural labor market issues are limiting economic growth in Ghana?',
+        queries: 4, negativePct: 20, positivePct: 68,
+        positiveCount: 27, negativeCount: 8,
+        negativeBreakdown: [
+          { label: NEG_REASON_LABELS[0], count: 3 },
+          { label: NEG_REASON_LABELS[1], count: 3 },
+          { label: NEG_REASON_LABELS[2], count: 0 },
+          { label: NEG_REASON_LABELS[3], count: 1 },
+          { label: NEG_REASON_LABELS[4], count: 1 },
+        ],
+        otherComments: [
+          'Skipped youth NEET rates and skills-matching programs.',
+        ],
+      },
+      {
+        query: 'What barriers are preventing SMEs from scaling in Ghana?',
+        queries: 4, negativePct: 12, positivePct: 76,
+        positiveCount: 30, negativeCount: 5,
+        negativeBreakdown: [
+          { label: NEG_REASON_LABELS[0], count: 2 },
+          { label: NEG_REASON_LABELS[1], count: 2 },
+          { label: NEG_REASON_LABELS[2], count: 0 },
+          { label: NEG_REASON_LABELS[3], count: 0 },
+          { label: NEG_REASON_LABELS[4], count: 1 },
+        ],
+        otherComments: [
+          'Wanted Enterprise Survey data, not general assertions.',
+        ],
+      },
+      {
+        query: 'How can Ghana attract more foreign direct investment?',
+        queries: 4, negativePct: 16, positivePct: 72,
+        positiveCount: 29, negativeCount: 6,
+        negativeBreakdown: [
+          { label: NEG_REASON_LABELS[0], count: 3 },
+          { label: NEG_REASON_LABELS[1], count: 2 },
+          { label: NEG_REASON_LABELS[2], count: 0 },
+          { label: NEG_REASON_LABELS[3], count: 0 },
+          { label: NEG_REASON_LABELS[4], count: 1 },
+        ],
+        otherComments: [
+          'Needed concrete FDI case studies, not policy lists.',
+        ],
+      },
+      {
+        query: 'How does Ghana compare to Kenya and Senegal in economic resilience?',
+        queries: 3, negativePct: 24, positivePct: 65,
+        positiveCount: 20, negativeCount: 8,
+        negativeBreakdown: [
+          { label: NEG_REASON_LABELS[0], count: 2 },
+          { label: NEG_REASON_LABELS[1], count: 4 },
+          { label: NEG_REASON_LABELS[2], count: 0 },
+          { label: NEG_REASON_LABELS[3], count: 1 },
+          { label: NEG_REASON_LABELS[4], count: 1 },
+        ],
+        otherComments: [
+          'Comparison used 2022 figures — wanted 2025 indicators.',
+        ],
+      },
+      {
+        query: "How do power and transport infrastructure gaps affect Ghana’s competitiveness?",
+        queries: 2, negativePct: 30, positivePct: 55,
+        positiveCount: 11, negativeCount: 7,
+        negativeBreakdown: [
+          { label: NEG_REASON_LABELS[0], count: 3 },
+          { label: NEG_REASON_LABELS[1], count: 2 },
+          { label: NEG_REASON_LABELS[2], count: 0 },
+          { label: NEG_REASON_LABELS[3], count: 1 },
+          { label: NEG_REASON_LABELS[4], count: 1 },
+        ],
+        otherComments: [
+          'Missed PPP pipeline status and unit-cost benchmarks.',
+        ],
+      },
     ],
   },
 };
 
 function buildFallbackSubcatData(s: Subcategory): SubcatDrawerData {
+  // Aggregate per prompt-type. Counts are inflated 10× so the breakdown
+  // across five reasons reads visually; the displayed totals row stays
+  // anchored to `queries` from the parent table.
+  const otherSamples = [
+    `Did not link to the latest ${s.name} brief.`,
+    `Wanted region-specific examples for ${s.name.toLowerCase()}.`,
+    `Missed cross-cutting comparisons with peer economies.`,
+  ];
+  const build = (query: string, queries: number, idx: number): SubcatPrompt => {
+    const positiveCount = Math.max(1, Math.round(queries * s.positivePct / 100 * 10));
+    const negativeCount = Math.max(1, Math.round(queries * s.negativePct / 100 * 10));
+    // Distribute negatives across the five reason buckets — rough but stable.
+    const weights = [0.35, 0.30, 0.05, 0.10, 0.20];
+    const counts = weights.map(w => Math.round(negativeCount * w));
+    // Adjust last bucket so the sum matches negativeCount exactly.
+    const drift = negativeCount - counts.reduce((a, b) => a + b, 0);
+    counts[4] = Math.max(0, counts[4] + drift);
+    return {
+      query, queries,
+      negativePct: s.negativePct, positivePct: s.positivePct,
+      positiveCount, negativeCount,
+      negativeBreakdown: NEG_REASON_LABELS.map((label, i) => ({ label, count: counts[i] })),
+      otherComments: counts[4] > 0 ? [otherSamples[idx % otherSamples.length]] : [],
+    };
+  };
   return {
     name: s.name,
     aiInsightHtml:
@@ -780,9 +993,9 @@ function buildFallbackSubcatData(s: Subcategory): SubcatDrawerData {
     topVpus: ['AFW', 'AFCE1', 'AFCE2'],
     topCollections: ['Country Growth and Jobs', 'Fiscal Policy and Growth'],
     prompts: [
-      { query: `What are the key drivers in ${s.name}?`,                      queries: Math.max(1, Math.round(s.queries * 0.4)), negativePct: s.negativePct, positivePct: s.positivePct },
-      { query: `How does Ghana compare to peers on ${s.name.toLowerCase()}?`, queries: Math.max(1, Math.round(s.queries * 0.25)), negativePct: s.negativePct, positivePct: s.positivePct },
-      { query: `What policy reforms are needed for ${s.name.toLowerCase()}?`, queries: Math.max(1, Math.round(s.queries * 0.2)), negativePct: s.negativePct, positivePct: s.positivePct },
+      build(`What are the key drivers in ${s.name}?`,                      Math.max(1, Math.round(s.queries * 0.4)),  0),
+      build(`How does Ghana compare to peers on ${s.name.toLowerCase()}?`, Math.max(1, Math.round(s.queries * 0.25)), 1),
+      build(`What policy reforms are needed for ${s.name.toLowerCase()}?`, Math.max(1, Math.round(s.queries * 0.2)),  2),
     ],
   };
 }

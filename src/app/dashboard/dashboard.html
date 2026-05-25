@@ -75,13 +75,13 @@
   </div>
 </section>
 
-<!-- ============= K360 by Region / Country ============= -->
+<!-- ============= K360 by Global / Region / Country ============= -->
 <section class="dash-section dash-section--fill">
   <header class="dash-section-head">
     <span class="dash-section-icon">
       <tabler-icon icon="chart-bar" [size]="16" />
     </span>
-    <span class="dash-section-title">K360 by Region/Country</span>
+    <span class="dash-section-title">K360 by Global/Region/Country</span>
     <span class="dash-section-rule"></span>
   </header>
 
@@ -91,29 +91,40 @@
     [class.mode-region]="mapMode() === 'region'"
     [style.--drawer-w.px]="drawerWidth()"
   >
-    <div class="map-mode-toggle" role="tablist" aria-label="Map mode">
+    <div class="map-mode-row">
       <button
         type="button"
-        class="mode-btn"
-        role="tab"
-        [class.is-active]="mapMode() === 'region'"
-        [attr.aria-selected]="mapMode() === 'region'"
-        (click)="setMapMode('region')"
+        class="global-btn"
+        (click)="resetToGlobal()"
+        aria-label="Show global stats"
       >
-        <tabler-icon icon="affiliate" [size]="13" />
-        By Region
+        <tabler-icon icon="world" [size]="13" />
+        Global
       </button>
-      <button
-        type="button"
-        class="mode-btn"
-        role="tab"
-        [class.is-active]="mapMode() === 'country'"
-        [attr.aria-selected]="mapMode() === 'country'"
-        (click)="setMapMode('country')"
-      >
-        <tabler-icon icon="flag" [size]="13" />
-        By Country
-      </button>
+      <div class="map-mode-toggle" role="tablist" aria-label="Map mode">
+        <button
+          type="button"
+          class="mode-btn"
+          role="tab"
+          [class.is-active]="mapMode() === 'region'"
+          [attr.aria-selected]="mapMode() === 'region'"
+          (click)="setMapMode('region')"
+        >
+          <tabler-icon icon="affiliate" [size]="13" />
+          By Region
+        </button>
+        <button
+          type="button"
+          class="mode-btn"
+          role="tab"
+          [class.is-active]="mapMode() === 'country'"
+          [attr.aria-selected]="mapMode() === 'country'"
+          (click)="setMapMode('country')"
+        >
+          <tabler-icon icon="flag" [size]="13" />
+          By Country
+        </button>
+      </div>
     </div>
 
     <div
@@ -184,7 +195,9 @@
       <header class="country-detail-head">
         <span class="country-flag" aria-hidden="true">{{ selectedCountry().flag }}</span>
         <span class="country-detail-name">{{ selectedCountry().name }}</span>
-        <span class="country-rank-badge">#{{ selectedCountry().queryRank }} in queries</span>
+        @if (selectedCountry().queryRank > 0) {
+          <span class="country-rank-badge">#{{ selectedCountry().queryRank }} in queries</span>
+        }
         <button class="country-detail-close" type="button" (click)="closeCountryPanel()" aria-label="Close">
           <tabler-icon icon="x" [size]="16" />
         </button>
@@ -237,13 +250,17 @@
             View Prompts <tabler-icon icon="chevron-right" [size]="14" />
           </a>
         </header>
-        <div class="topic-pills">
-          @for (p of activeTabData().pills.items; track p) {
+        <div class="topic-treemap" [attr.data-count]="topicTreemap().length">
+          @for (t of topicTreemap(); track t.label; let i = $index) {
             <a
-              class="topic-pill"
+              class="topic-cell"
+              [attr.data-rank]="i + 1"
               [routerLink]="activeTabData().pills.link"
-              [queryParams]="pillQueryParamsForLabel(activeTab(), p)"
-            >{{ p }}</a>
+              [queryParams]="pillQueryParamsForLabel(activeTab(), t.label)"
+            >
+              <span class="topic-cell-label">{{ t.label }}</span>
+              <span class="topic-cell-pct">{{ t.pct }}%</span>
+            </a>
           }
         </div>
       </section>
