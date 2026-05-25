@@ -203,7 +203,7 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
-  height: 480px;
+  height: 360px;
 }
 
 .treemap-row {
@@ -433,10 +433,15 @@
   padding: 0;
   display: flex;
   flex-direction: column;
+  flex: 1;
+  justify-content: space-between;
 }
 
 .signal-item {
   border-top: 1px solid var(--color-neutral-solid-10);
+  display: flex;
+  flex-direction: column;
+  flex: 1;
 }
 .signal-item:first-child { border-top: none; }
 
@@ -446,6 +451,7 @@
   grid-template-columns: minmax(0, 1fr) minmax(110px, max-content);
   gap: 16px;
   align-items: center;
+  flex: 1;
   padding: 14px 12px;
   margin: 0 -12px;
   border-radius: 10px;

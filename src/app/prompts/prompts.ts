@@ -116,41 +116,37 @@ export class Prompts {
         prompts: ['Cross-cutting country diagnostic questions', 'Ad-hoc operational queries', 'General knowledge base searches'] },
     ],
     [
-      { id: 'exp', name: 'Expert & People Discovery', pct: 13, count: 37, color: '#f59e0b',
-        prompts: ['Who are our experts on Ghanaian economic policy?', 'Find specialists in North Africa labor markets', 'Staff with urban development experience in MNA'] },
-      { id: 'cli', name: 'Climate, Energy & Infrastructure',      pct: 11, count: 31, color: '#22d3ee',
+      { id: 'cli', name: 'Climate, Energy & Infrastructure', pct: 16, count: 45, color: '#22d3ee',
         prompts: ['Climate finance flows in West Africa', 'Renewable energy transition in Morocco', 'Infrastructure resilience for coastal Ghana'] },
-      { id: 'les', name: 'Project Lessons & Evidence', pct: 9,  count: 26, color: '#14b8a6',
+      { id: 'les', name: 'Project Lessons & Evidence',       pct: 13, count: 37, color: '#14b8a6',
         prompts: ['Lessons from fiscal reform programs in Ghana', 'What worked in labor market interventions in MNA?', 'Implementation lessons from infrastructure projects'] },
-      { id: 'hf',  name: 'Housing & Urban Finance',   pct: 8,  count: 22, color: '#ec4899',
+      { id: 'hf',  name: 'Housing & Urban Finance',          pct: 12, count: 34, color: '#ec4899',
         prompts: ['Housing finance gaps in Sub-Saharan Africa', 'Mortgage market conditions in Morocco', 'Affordable housing policy in urban Ghana'] },
     ],
   ];
 
   private readonly knowledgeByRepeat: TreemapTopic[][] = [
     [
-      { id: 'eg',  name: 'Macroeconomic Research',     pct: 32, count: 56, color: '#2c8aff',
+      { id: 'eg',  name: 'Macroeconomic Research', pct: 32, count: 56, color: '#2c8aff',
         prompts: ['Recurring GDP tracking queries for Ghana', 'Monthly poverty indicator updates', 'Follow-up on macroeconomic stabilisation program'] },
-      { id: 'oth', name: 'General Queries',            pct: 18, count: 32, color: '#5d6b7e',
+      { id: 'oth', name: 'General Queries',         pct: 18, count: 32, color: '#5d6b7e',
         prompts: ['Repeated cross-cutting operational queries', 'Recurring country diagnostic requests', 'Frequently asked general knowledge questions'] },
-      { id: 'ml',  name: 'Labor & Social Policy',     pct: 14, count: 24, color: '#a855f7',
+      { id: 'ml',  name: 'Labor & Social Policy',  pct: 14, count: 24, color: '#a855f7',
         prompts: ['Monthly youth unemployment monitoring', 'Recurring informal sector analysis', 'Follow-up on Morocco skills development program'] },
     ],
     [
-      { id: 'cli', name: 'Climate, Energy & Infrastructure',      pct: 12, count: 21, color: '#22d3ee',
+      { id: 'cli', name: 'Climate, Energy & Infrastructure', pct: 16, count: 28, color: '#22d3ee',
         prompts: ['Recurring climate finance flow queries', 'Monthly energy transition status updates', 'Follow-up on infrastructure resilience assessments'] },
-      { id: 'exp', name: 'Expert & People Discovery', pct: 10, count: 18, color: '#f59e0b',
-        prompts: ['Repeated expert directory lookups by sector', 'Regular staff capability queries', 'Recurring team composition requests for operations'] },
-      { id: 'les', name: 'Project Lessons & Evidence', pct: 8,  count: 14, color: '#14b8a6',
+      { id: 'les', name: 'Project Lessons & Evidence',       pct: 11, count: 19, color: '#14b8a6',
         prompts: ['Repeated lessons queries for reform programs', 'Recurring intervention effectiveness searches', 'Follow-up on project completion findings'] },
-      { id: 'hf',  name: 'Housing & Urban Finance',   pct: 6,  count: 11, color: '#ec4899',
+      { id: 'hf',  name: 'Housing & Urban Finance',          pct:  9, count: 16, color: '#ec4899',
         prompts: ['Monthly housing finance market updates', 'Recurring mortgage market indicator queries', 'Follow-up on affordable housing program results'] },
     ],
   ];
 
   private readonly peopleByVolume: TreemapTopic[][] = [
     [
-      { id: 'exp',  name: 'Expertise Search by Sector', pct: 45, count: 37, color: '#a855f7',
+      { id: 'exp',  name: 'Expert & People Discovery', pct: 45, count: 37, color: '#a855f7',
         prompts: ['Find climate specialists in EAP', 'Who leads our education work in SSA?', 'Staff experienced in digital government reforms'] },
     ],
     [
@@ -163,7 +159,7 @@ export class Prompts {
 
   private readonly peopleByRepeat: TreemapTopic[][] = [
     [
-      { id: 'exp',  name: 'Expertise Search by Sector', pct: 50, count: 22, color: '#a855f7',
+      { id: 'exp',  name: 'Expert & People Discovery', pct: 50, count: 22, color: '#a855f7',
         prompts: ['Recurring sector specialist lookups', 'Repeated education expert directory queries', 'Regular governance specialist searches'] },
     ],
     [
