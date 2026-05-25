@@ -1,8 +1,31 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, ElementRef, computed, effect, inject, signal, viewChild } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { TablerIconComponent } from '@tabler/icons-angular';
+import { HierFilter } from '../shared/hier-filter/hier-filter';
+import {
+  REGION_GROUPS, VERTICAL_GROUPS, VPU_GROUPS, regionCountrySelectionFromParams,
+} from '../shared/hier-filter/hier-filter-catalog';
+import { DateRangeFilter } from '../shared/date-range-filter/date-range-filter';
 
-type Tab = 'agents' | 'collections';
+type Tab = 'collections' | 'agents';
+type Workspace = 'wb' | 'ifc';
+type MapMode = 'region' | 'country';
+type CurationStatus = 'Curated' | 'Pending Review' | 'In Progress' | 'Auto-Ingested';
+type RegSortKey = 'name' | 'status' | 'verticals' | 'sectors' | 'lastUpdated' | 'utilization' | 'queries';
+
+interface KpiMetric { value: string; label?: string; delta?: string; }
+interface OverviewKpi { title: string; metrics: KpiMetric[]; sub?: string; }
+interface RegistryRow {
+  name: string;
+  status: CurationStatus;
+  verticals: string[];
+  sectors: string[];
+  lastUpdated: string;        // ISO yyyy-mm-dd for sort
+  lastUpdatedDisplay: string; // pre-formatted for display
+  utilization: number;        // 0-100
+  queries: number;
+}
 type Usage = 'high' | 'medium' | 'low';
 type ChipSeverity = 'warning' | 'danger';
 
@@ -45,7 +68,11 @@ interface CollectionRecord {
   lastSynced: string;
   freshness: Freshness;
   demand: DemandRank;
+  queries: number;
 }
+
+type SortKey = 'name' | 'coverage' | 'sourceUtilisation' | 'lastSynced' | 'queries' | 'demand';
+type SortDir = 'asc' | 'desc';
 
 interface TopPromptType {
   text: string;
@@ -87,6 +114,9 @@ interface CollectionKpi {
   icon: string;
   tone: 'purple' | 'cyan' | 'amber' | 'red' | 'green';
   pct: number;
+  secondary?: string;
+  target?: string;
+  tooltip?: string;
 }
 
 const CARD_W = 200;
@@ -95,9 +125,15 @@ const VIEW_W = 1860;
 const VIEW_H = 400;
 const MIN_ZOOM = 0.3;
 const MAX_ZOOM = 2.5;
-const DEFAULT_ZOOM = 0.6;
+const DEFAULT_ZOOM = 0.85;
 const DEFAULT_PAN_X = 20;
-const DEFAULT_PAN_Y = 80;
+const DEFAULT_PAN_Y = 60;
+
+const LINE_COLOR: Record<'high' | 'medium' | 'low', string> = {
+  high:   '#34D399',
+  medium: '#F59E0B',
+  low:    '#EF4444',
+};
 
 function curve(x1: number, y1: number, x2: number, y2: number): string {
   const midY = (y1 + y2) / 2;
@@ -106,12 +142,51 @@ function curve(x1: number, y1: number, x2: number, y2: number): string {
 
 @Component({
   selector: 'app-assets',
-  imports: [TablerIconComponent, RouterLink],
+  imports: [TablerIconComponent, RouterLink, HierFilter, DateRangeFilter],
   templateUrl: './assets.html',
   styleUrl: './assets.css',
 })
 export class Assets {
-  readonly tab = signal<Tab>('agents');
+  readonly tab = signal<Tab>('collections');
+  readonly workspace = signal<Workspace>('wb');
+  setWorkspace(w: Workspace) { this.workspace.set(w); }
+
+  // ---- Hierarchical filter catalogs ----
+  readonly regionGroups   = REGION_GROUPS;
+  readonly verticalGroups = VERTICAL_GROUPS;
+  readonly vpuGroups      = VPU_GROUPS;
+
+  /** Pre-applied Region/Country from the URL — set when the user arrives from
+   *  the dashboard country drawer's "View Collections" or "View Agents" link
+   *  (?country=ke or ?region=afe). Empty otherwise. */
+  readonly initialRegionCountry = (() => {
+    const q = inject(ActivatedRoute).snapshot.queryParamMap;
+    return regionCountrySelectionFromParams({ region: q.get('region'), country: q.get('country') });
+  })();
+
+  // ----- Agents tab KPIs — anchored to K360 Master Data Extract -----
+  // 8 live agents per Agents sheet. TOR Genie tops Power BI tools usage at
+  // 14,724 page views out of 23,822 tool actions (~62%).
+  readonly agentsKpis: OverviewKpi[] = [
+    {
+      title: 'Total No. of Agents',
+      metrics: [{ value: '8' }],
+      sub: 'all currently live',
+    },
+    {
+      title: 'Top Used Agent',
+      metrics: [{ value: 'TOR Genie' }],
+      sub: '62% of tool actions',
+    },
+    {
+      title: 'Agents Success Rate',
+      metrics: [{ value: '85%', delta: '+4pp' }],
+    },
+    {
+      title: 'Agents Utilisation Rate',
+      metrics: [{ value: '92%', delta: '+3pp' }],
+    },
+  ];
 
   constructor() {
     const route = inject(ActivatedRoute);
@@ -119,6 +194,233 @@ export class Assets {
     if (initial === 'collections' || initial === 'agents') {
       this.tab.set(initial);
     }
+  }
+
+  // ----- Assets Overview KPIs — K360 Master Data Extract -----
+  // 128 collections, 16,201 total resources per Collections sheet.
+  readonly overviewKpis: OverviewKpi[] = [
+    {
+      title: 'Total Collections',
+      metrics: [{ value: '128',   delta: '+6' }],
+      sub: '16,201 resources',
+    },
+    {
+      title: 'Knowledge Coverage',
+      metrics: [{ value: '78%',   delta: '+5pp' }],
+      sub: 'of answers cite K360 sources',
+    },
+    {
+      title: 'Priority Collections Integrated',
+      metrics: [{ value: '84%',   delta: '+12pp' }],
+      sub: '108 of 128 onboarded',
+    },
+    {
+      title: 'Curated Resources',
+      metrics: [{ value: '4,230', delta: '+9%' }],
+      sub: 'of 16,201 total resources',
+    },
+  ];
+
+  // ----- Collection Registry (Assets Overview) -----
+  readonly registryRows: RegistryRow[] = [
+    { name: 'Climate Adaptation Financing Framework', status: 'Curated',        verticals: ['Planet'],         sectors: ['Climate', 'Finance'],            lastUpdated: '2026-05-12', lastUpdatedDisplay: 'May 12, 2026', utilization: 67, queries: 5900 },
+    { name: 'Water Resilience Toolkit',               status: 'Curated',        verticals: ['Planet'],         sectors: ['Water', 'Climate'],              lastUpdated: '2026-05-12', lastUpdatedDisplay: 'May 12, 2026', utilization: 79, queries: 5900 },
+    { name: 'Urban Flooding & Drainage Reports',      status: 'Pending Review', verticals: ['Infrastructure'], sectors: ['Urban', 'Water', 'Infrastructure'], lastUpdated: '2026-05-10', lastUpdatedDisplay: 'May 10, 2026', utilization: 74, queries: 4800 },
+    { name: 'Digital Public Infrastructure Playbook', status: 'Curated',        verticals: ['Digital & AI'],   sectors: ['Digital Access', 'Governance'],  lastUpdated: '2026-04-12', lastUpdatedDisplay: 'Apr 12, 2026', utilization: 88, queries: 3000 },
+    { name: 'AI Readiness Country Assessments',       status: 'Auto-Ingested',  verticals: ['Digital & AI'],   sectors: ['AI', 'Public Sector'],           lastUpdated: '2026-04-06', lastUpdatedDisplay: 'Apr 6, 2026',  utilization: 71, queries: 2900 },
+    { name: 'Health Systems Resilience Notes',        status: 'Curated',        verticals: ['People'],         sectors: ['Health', 'Social Protection'],   lastUpdated: '2026-04-06', lastUpdatedDisplay: 'Apr 6, 2026',  utilization: 77, queries: 2000 },
+    { name: 'Education Technology Deployment Cases',  status: 'In Progress',    verticals: ['People'],         sectors: ['Education', 'Digital Access'],   lastUpdated: '2026-04-04', lastUpdatedDisplay: 'Apr 4, 2026',  utilization: 75, queries: 1200 },
+    { name: 'Debt Sustainability Analysis Repository',status: 'Curated',        verticals: ['Prosperity'],     sectors: ['Macroeconomics', 'Finance'],     lastUpdated: '2026-04-02', lastUpdatedDisplay: 'Apr 2, 2026',  utilization: 84, queries: 1100 },
+    { name: 'SME Growth and Jobs Repository',         status: 'Pending Review', verticals: ['People'],         sectors: ['Jobs', 'Private Sector'],        lastUpdated: '2026-04-01', lastUpdatedDisplay: 'Apr 1, 2026',  utilization: 69, queries: 1000 },
+  ];
+
+  readonly regSortKey = signal<RegSortKey>('queries');
+  readonly regSortDir = signal<SortDir>('desc');
+
+  readonly sortedRegistry = computed(() => {
+    const key = this.regSortKey();
+    const mul = this.regSortDir() === 'asc' ? 1 : -1;
+    return [...this.registryRows].sort((a, b) => {
+      const va = this.registryValue(a, key);
+      const vb = this.registryValue(b, key);
+      if (typeof va === 'string' && typeof vb === 'string') return va.localeCompare(vb) * mul;
+      return ((va as number) - (vb as number)) * mul;
+    });
+  });
+
+  private registryValue(r: RegistryRow, key: RegSortKey): string | number {
+    switch (key) {
+      case 'name':        return r.name;
+      case 'status':      return r.status;
+      case 'verticals':   return r.verticals[0] ?? '';
+      case 'sectors':     return r.sectors[0] ?? '';
+      case 'lastUpdated': return new Date(r.lastUpdated).getTime();
+      case 'utilization': return r.utilization;
+      case 'queries':     return r.queries;
+    }
+  }
+
+  toggleRegSort(key: RegSortKey) {
+    if (this.regSortKey() === key) {
+      this.regSortDir.update(d => d === 'asc' ? 'desc' : 'asc');
+    } else {
+      this.regSortKey.set(key);
+      this.regSortDir.set(key === 'name' ? 'asc' : 'desc');
+    }
+  }
+
+  formatQueries(n: number): string {
+    if (n >= 1000) return (n / 1000).toFixed(n >= 10000 ? 0 : 1).replace(/\.0$/, '') + 'K';
+    return n.toLocaleString();
+  }
+
+  // =========================================================================
+  // Collections-tab middle row: Global Usage map + VPU Usage panel
+  // =========================================================================
+  private readonly mapSanitizer = inject(DomSanitizer);
+
+  // ----- VPU Usage (aggregate across all collections in this workspace) -----
+  // `reaches` = distinct VPUs with any collection access in the period;
+  // `totalVpus` = full WBG + IFC VPU catalogue (matches VPU_GROUPS).
+  readonly vpuUsage = {
+    reaches: 54,
+    totalVpus: 69,
+    top: [
+      { code: 'MTI',      name: 'Macroeconomics, Trade & Investment',         pct: 92 },
+      { code: 'SCA',      name: 'Climate Change',                             pct: 84 },
+      { code: 'OPCS',     name: 'Operations Policy & Country Services',       pct: 78 },
+      { code: 'GGW',      name: 'Water Global Practice',                      pct: 71 },
+      { code: 'AFCE1',    name: 'Eastern & Southern Africa CU 1',             pct: 64 },
+      { code: 'EFI',      name: 'Equitable Growth, Finance & Institutions',   pct: 58 },
+      { code: 'GGE',      name: 'Environment',                                pct: 52 },
+      { code: 'IFCINFRA', name: 'IFC Infrastructure',                         pct: 44 },
+    ],
+  };
+
+  // ----- Global Usage map -----
+  readonly mapMode = signal<MapMode>('region');
+  setMapMode(m: MapMode) { this.mapMode.set(m); this.mapSelection.set(null); }
+
+  readonly mapSvg = signal<SafeHtml | null>(null);
+  readonly mapHost = viewChild<ElementRef<HTMLElement>>('mapHost');
+
+  // Map pan/zoom state — prefixed `map*` to avoid colliding with the agents-tab
+  // canvas pan/zoom (panX/panY/zoom) defined further down.
+  readonly mapScale = signal(1);
+  readonly mapTx = signal(0);
+  readonly mapTy = signal(0);
+  readonly mapTransform = computed(
+    () => `translate(${this.mapTx()}px, ${this.mapTy()}px) scale(${this.mapScale()})`,
+  );
+  readonly isMapPanning = signal(false);
+  private static readonly MAP_MIN_ZOOM = 1;
+  private static readonly MAP_MAX_ZOOM = 6;
+  private mapPanStart: { x: number; y: number; tx: number; ty: number } | null = null;
+  private mapPanMoved = false;
+
+  readonly mapSelection = signal<{ name: string; queries: number } | null>(null);
+
+  private loadMap = effect(() => {
+    if (this.mapSvg()) return;
+    fetch('/world-map-coded.svg')
+      .then(r => r.text())
+      .then(svg => this.mapSvg.set(this.mapSanitizer.bypassSecurityTrustHtml(svg)));
+  });
+
+  private tintMapEffect = effect(() => {
+    const host = this.mapHost()?.nativeElement;
+    this.mapSvg();
+    if (!host) return;
+    setTimeout(() => this.tintMap(host), 0);
+  });
+
+  private tintMap(host: HTMLElement) {
+    const svg = host.querySelector<SVGSVGElement>('svg');
+    if (!svg) return;
+    svg.querySelectorAll<SVGElement>('[id]').forEach(el => {
+      const id = el.id?.toLowerCase();
+      if (!id || id.startsWith('_') || id === 'world-map') return;
+      const intensity = ASSETS_MAP_INTENSITY[id] ?? 0;
+      const region = ASSETS_ISO_TO_REGION[id] ?? '';
+      const targets = el.tagName === 'g'
+        ? el.querySelectorAll<SVGPathElement>('path')
+        : [el as unknown as SVGPathElement];
+      targets.forEach(p => {
+        p.dataset['intensity'] = String(intensity);
+        if (region) p.dataset['region'] = region;
+        p.dataset['country'] = id;
+      });
+    });
+  }
+
+  onMapClick(event: MouseEvent) {
+    if (this.mapPanMoved) return;
+    const target = event.target as Element | null;
+    const path = target?.closest?.('path') as SVGPathElement | null;
+    if (!path) { this.mapSelection.set(null); return; }
+    if (this.mapMode() === 'region') {
+      const region = path.dataset['region'];
+      if (!region) { this.mapSelection.set(null); return; }
+      this.mapSelection.set({
+        name: ASSETS_REGION_LABEL[region] ?? region.toUpperCase(),
+        queries: ASSETS_REGION_QUERIES[region] ?? 0,
+      });
+    } else {
+      const code = path.dataset['country'];
+      if (!code) { this.mapSelection.set(null); return; }
+      this.mapSelection.set({
+        name: ASSETS_COUNTRY_LABEL[code] ?? code.toUpperCase(),
+        queries: ASSETS_COUNTRY_QUERIES[code] ?? 0,
+      });
+    }
+  }
+
+  onMapWheel(event: WheelEvent) {
+    event.preventDefault();
+    const factor = event.deltaY < 0 ? 1.15 : 1 / 1.15;
+    this.mapScale.update(s =>
+      Math.min(Assets.MAP_MAX_ZOOM, Math.max(Assets.MAP_MIN_ZOOM, s * factor)),
+    );
+  }
+
+  onMapPanStart(event: MouseEvent) {
+    if (event.button !== 0) return;
+    this.mapPanStart = { x: event.clientX, y: event.clientY, tx: this.mapTx(), ty: this.mapTy() };
+    this.mapPanMoved = false;
+    this.isMapPanning.set(true);
+  }
+
+  onMapPanMove(event: MouseEvent) {
+    if (!this.mapPanStart) return;
+    const dx = event.clientX - this.mapPanStart.x;
+    const dy = event.clientY - this.mapPanStart.y;
+    if (Math.abs(dx) > 3 || Math.abs(dy) > 3) this.mapPanMoved = true;
+    this.mapTx.set(this.mapPanStart.tx + dx);
+    this.mapTy.set(this.mapPanStart.ty + dy);
+  }
+
+  onMapPanEnd() {
+    this.mapPanStart = null;
+    this.isMapPanning.set(false);
+  }
+
+  mapZoomIn()    { this.mapScale.update(s => Math.min(Assets.MAP_MAX_ZOOM, s * 1.25)); }
+  mapZoomOut()   { this.mapScale.update(s => Math.max(Assets.MAP_MIN_ZOOM, s / 1.25)); }
+  mapResetView() {
+    this.mapScale.set(1);
+    this.mapTx.set(0);
+    this.mapTy.set(0);
+    this.mapSelection.set(null);
+  }
+
+  // Slug used in the /assets/collection/:slug route. Matches the keys in
+  // SLUG_TO_NAME inside the CollectionDetail component.
+  slugFor(name: string): string {
+    return name
+      .toLowerCase()
+      .replace(/&/g, 'and')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '');
   }
 
   readonly cardW = CARD_W;
@@ -219,7 +521,14 @@ export class Assets {
       const y1 = from.y + CARD_H;
       const x2 = to.x + CARD_W / 2;
       const y2 = to.y;
-      return [{ d: curve(x1, y1, x2, y2), key: `${l.from}-${l.to}` }];
+      // Match the connector color to the target node's usage tier so the
+      // canvas reads at a glance — green for high, amber for medium, red
+      // for low.
+      return [{
+        d: curve(x1, y1, x2, y2),
+        key: `${l.from}-${l.to}`,
+        color: LINE_COLOR[to.usage],
+      }];
     });
   });
 
@@ -229,6 +538,26 @@ export class Assets {
   readonly zoom = signal(DEFAULT_ZOOM);
   readonly dragging = signal(false);
   private dragStart = { x: 0, y: 0, panX: 0, panY: 0 };
+
+  readonly canvasWrap = viewChild<ElementRef<HTMLElement>>('canvasWrap');
+  private hasCenteredCanvas = false;
+
+  private centerCanvas = effect(() => {
+    const wrap = this.canvasWrap()?.nativeElement;
+    if (!wrap || this.hasCenteredCanvas) return;
+    // Defer so clientWidth/Height are measured after layout.
+    setTimeout(() => {
+      if (this.hasCenteredCanvas) return;
+      const wrapW = wrap.clientWidth;
+      const wrapH = wrap.clientHeight;
+      if (!wrapW || !wrapH) return;
+      const contentW = VIEW_W * DEFAULT_ZOOM;
+      const contentH = VIEW_H * DEFAULT_ZOOM;
+      this.panX.set(Math.round((wrapW - contentW) / 2));
+      this.panY.set(Math.round((wrapH - contentH) / 2));
+      this.hasCenteredCanvas = true;
+    }, 0);
+  });
 
   readonly transform = computed(
     () => `translate(${this.panX()}px, ${this.panY()}px) scale(${this.zoom()})`,
@@ -281,9 +610,15 @@ export class Assets {
   }
 
   resetView() {
-    this.panX.set(DEFAULT_PAN_X);
-    this.panY.set(DEFAULT_PAN_Y);
     this.zoom.set(DEFAULT_ZOOM);
+    const wrap = this.canvasWrap()?.nativeElement;
+    if (wrap?.clientWidth && wrap?.clientHeight) {
+      this.panX.set(Math.round((wrap.clientWidth  - VIEW_W * DEFAULT_ZOOM) / 2));
+      this.panY.set(Math.round((wrap.clientHeight - VIEW_H * DEFAULT_ZOOM) / 2));
+    } else {
+      this.panX.set(DEFAULT_PAN_X);
+      this.panY.set(DEFAULT_PAN_Y);
+    }
   }
 
   setTab(t: Tab) {
@@ -295,32 +630,36 @@ export class Assets {
   readonly collectionKpis: CollectionKpi[] = [
     {
       title: 'Total Sources Integrated',
-      value: '32',
-      sub: 'of ~40 priority collections',
+      value: '128',
+      sub: '16,201 resources · priority coverage baselining in progress',
       icon: 'stack-2',
       tone: 'purple',
       pct: 80,
     },
     {
       title: 'Overall Coverage',
-      value: '80%',
-      sub: 'interim target met',
+      value: '22%',
+      sub: 'collections actively queried this period',
+      secondary: '28 of 128 collections with recorded query activity · Jan–May 2026',
+      target: 'Target: 80% by FY-end',
       icon: 'target',
-      tone: 'green',
-      pct: 80,
+      tone: 'amber',
+      pct: 22,
     },
     {
       title: 'Cross-Unit Access Rate',
-      value: '—',
-      sub: 'planned · cross-silo knowledge flow',
+      value: '34%',
+      sub: 'estimated cross-region query rate',
+      secondary: 'queries where user region differs from content region · proxy measure',
+      tooltip: 'Calculated as queries from non-AFW countries on AFW-tagged content as a proportion of total queries. Full instrumentation requires user profile to content origin join, available Phase 2.',
       icon: 'arrows-shuffle',
       tone: 'cyan',
-      pct: 0,
+      pct: 34,
     },
     {
       title: 'Freshness Alert',
       value: '3',
-      sub: 'not synced in >30 days',
+      sub: 'collections flagged — confirm against K360 platform sync logs',
       icon: 'alert-triangle',
       tone: 'red',
       pct: 20,
@@ -328,19 +667,19 @@ export class Assets {
   ];
 
   readonly collectionsList: CollectionRecord[] = [
-    { name: 'WBG Library',           icon: 'library',    type: 'Library',    status: 'integrated',  coverage: 92, sourceUtilisation: 78, lastSynced: '2d ago',  freshness: 'current',  demand: 'high' },
-    { name: 'Intranet',              icon: 'building',   type: 'Intranet',   status: 'integrated',  coverage: 88, sourceUtilisation: 82, lastSynced: '1d ago',  freshness: 'current',  demand: 'high' },
-    { name: 'Data360',               icon: 'chart-bar',  type: 'Data',       status: 'integrated',  coverage: 95, sourceUtilisation: 74, lastSynced: '3d ago',  freshness: 'current',  demand: 'medium' },
-    { name: 'Sector Flagships',      icon: 'flag',       type: 'Sector',     status: 'in-progress', coverage: 80, sourceUtilisation: 68, lastSynced: '5d ago',  freshness: 'current',  demand: 'high' },
-    { name: 'Country Profiles',      icon: 'map',        type: 'Country',    status: 'in-progress', coverage: 65, sourceUtilisation: 55, lastSynced: '8d ago',  freshness: 'aging',    demand: 'high' },
-    { name: 'TOR Templates',         icon: 'file-text',  type: 'TOR',        status: 'in-progress', coverage: 40, sourceUtilisation: 71, lastSynced: '12d ago', freshness: 'aging',    demand: 'very-high' },
-    { name: 'Evaluation Reports',    icon: 'report',     type: 'Evaluation', status: 'pending',     coverage: 25, sourceUtilisation: 42, lastSynced: '45d ago', freshness: 'stale',    demand: 'rising' },
-    { name: 'IFC Project Docs',      icon: 'briefcase',  type: 'Library',    status: 'pending',     coverage: 10, sourceUtilisation: 30, lastSynced: '—',       freshness: 'unsynced', demand: 'medium' },
-    { name: 'Procurement Library',   icon: 'package',    type: 'Library',    status: 'pending',     coverage: 0,  sourceUtilisation: 0,  lastSynced: '—',       freshness: 'unsynced', demand: 'low' },
-    { name: 'Spotlight Collections', icon: 'star',       type: 'Spotlight',  status: 'integrated',  coverage: 85, sourceUtilisation: 65, lastSynced: '1d ago',  freshness: 'current',  demand: 'medium' },
+    { name: 'Policy Research Working Papers',          icon: 'library',   type: 'Research',  status: 'integrated',  coverage: 92, sourceUtilisation: 78, lastSynced: '2d ago',  freshness: 'current',  demand: 'high',      queries: 2840 },
+    { name: 'Country Economic Updates',                icon: 'map',       type: 'Country',   status: 'integrated',  coverage: 88, sourceUtilisation: 84, lastSynced: '1d ago',  freshness: 'current',  demand: 'very-high', queries: 4860 },
+    { name: 'Macro Poverty Outlook',                   icon: 'chart-bar', type: 'Macro',     status: 'integrated',  coverage: 86, sourceUtilisation: 72, lastSynced: '3d ago',  freshness: 'current',  demand: 'high',      queries: 1920 },
+    { name: 'IFC Insights and Reports',                icon: 'briefcase', type: 'IFC',       status: 'integrated',  coverage: 78, sourceUtilisation: 58, lastSynced: '5d ago',  freshness: 'current',  demand: 'medium',    queries:   14 },
+    { name: 'Energy Sector Management Assistance Program', icon: 'flag',  type: 'Sector',    status: 'in-progress', coverage: 64, sourceUtilisation: 62, lastSynced: '8d ago',  freshness: 'aging',    demand: 'rising',    queries:   17 },
+    { name: 'Miscellaneous Knowledge Notes',           icon: 'file-text', type: 'Notes',     status: 'integrated',  coverage: 52, sourceUtilisation: 28, lastSynced: '14d ago', freshness: 'aging',    demand: 'low',       queries:    6 },
+    { name: 'ICRR Archive',                            icon: 'report',    type: 'Evaluation', status: 'integrated', coverage: 80, sourceUtilisation: 66, lastSynced: '4d ago',  freshness: 'current',  demand: 'high',      queries: 1240 },
+    { name: 'TOR Library',                             icon: 'file-text', type: 'TOR',       status: 'integrated',  coverage: 95, sourceUtilisation: 88, lastSynced: '1d ago',  freshness: 'current',  demand: 'very-high', queries: 9420 },
+    { name: 'Country Partnership Frameworks',          icon: 'star',      type: 'Country',   status: 'in-progress', coverage: 58, sourceUtilisation: 44, lastSynced: '18d ago', freshness: 'aging',    demand: 'medium',    queries:    9 },
+    { name: 'Procurement Notices Archive',             icon: 'package',   type: 'Library',   status: 'pending',     coverage: 12, sourceUtilisation: 6,  lastSynced: '52d ago', freshness: 'stale',    demand: 'low',       queries:    0 },
   ];
 
-  readonly collectionsTotal = 42;
+  readonly collectionsTotal = 128;
 
   readonly statusOptions = [
     { id: 'all',         label: 'All Statuses' },
@@ -353,6 +692,9 @@ export class Assets {
   readonly activeChip = signal<string | null>(null);
   readonly statusOpen = signal(false);
 
+  readonly sortKey = signal<SortKey>('queries');
+  readonly sortDir = signal<SortDir>('desc');
+
   readonly statusFilterLabel = computed(
     () => this.statusOptions.find((o) => o.id === this.statusFilter())?.label ?? 'All Statuses',
   );
@@ -360,14 +702,58 @@ export class Assets {
   readonly filteredCollections = computed(() => {
     const status = this.statusFilter();
     const chip = this.activeChip();
-    return this.collectionsList.filter((c) => {
+    const key = this.sortKey();
+    const mul = this.sortDir() === 'asc' ? 1 : -1;
+
+    const rows = this.collectionsList.filter((c) => {
       if (status !== 'all' && c.status !== status) return false;
       if (chip === 'outdated' && c.freshness !== 'stale') return false;
       if (chip === 'high-demand' && !['very-high', 'high'].includes(c.demand)) return false;
       if (chip === 'newly-ingested' && c.status !== 'integrated') return false;
       return true;
     });
+
+    return rows.slice().sort((a, b) => {
+      if (key === 'name') return a.name.localeCompare(b.name) * mul;
+      const av = this.sortValue(a, key);
+      const bv = this.sortValue(b, key);
+      return (av - bv) * mul;
+    });
   });
+
+  private sortValue(c: CollectionRecord, key: Exclude<SortKey, 'name'>): number {
+    switch (key) {
+      case 'coverage':          return c.coverage;
+      case 'sourceUtilisation': return c.sourceUtilisation;
+      case 'queries':           return c.queries;
+      case 'lastSynced':        return this.daysSinceSync(c.lastSynced);
+      case 'demand':            return this.demandRank(c.demand);
+    }
+  }
+
+  private daysSinceSync(s: string): number {
+    const m = s.match(/(\d+)/);
+    return m ? parseInt(m[1], 10) : 0;
+  }
+
+  private demandRank(d: DemandRank): number {
+    switch (d) {
+      case 'very-high': return 5;
+      case 'high':      return 4;
+      case 'rising':    return 3;
+      case 'medium':    return 2;
+      case 'low':       return 1;
+    }
+  }
+
+  toggleSort(key: SortKey) {
+    if (this.sortKey() === key) {
+      this.sortDir.update((d) => (d === 'asc' ? 'desc' : 'asc'));
+    } else {
+      this.sortKey.set(key);
+      this.sortDir.set(key === 'name' ? 'asc' : 'desc');
+    }
+  }
 
   toggleStatusOpen() { this.statusOpen.update((v) => !v); }
   closeStatusFilter() { this.statusOpen.set(false); }
@@ -498,3 +884,71 @@ export class Assets {
     }
   }
 }
+
+// =============================================================================
+// Global Usage map — lookup tables. Workspace-wide aggregates (sum across all
+// collections), which is why values are higher than those on Collection Detail.
+// =============================================================================
+const ASSETS_ISO_TO_REGION: Record<string, string> = {
+  ke: 'afe', et: 'afe', tz: 'afe', ug: 'afe', rw: 'afe', mw: 'afe', mz: 'afe', zm: 'afe', zw: 'afe',
+  za: 'afe', mg: 'afe', ao: 'afe', cd: 'afe', so: 'afe', sd: 'afe', ss: 'afe', bw: 'afe', na: 'afe',
+  bi: 'afe', km: 'afe', er: 'afe', sz: 'afe', ls: 'afe', mu: 'afe', sc: 'afe',
+  ng: 'afw', gh: 'afw', sn: 'afw', ci: 'afw', cm: 'afw', cg: 'afw', cv: 'afw', bf: 'afw', bj: 'afw',
+  ga: 'afw', gm: 'afw', gn: 'afw', gw: 'afw', gq: 'afw', lr: 'afw', ml: 'afw', mr: 'afw', ne: 'afw',
+  st: 'afw', sl: 'afw', tg: 'afw', cf: 'afw', td: 'afw',
+  in: 'sar', bd: 'sar', pk: 'sar', np: 'sar', lk: 'sar', af: 'sar', bt: 'sar', mv: 'sar',
+  cn: 'eap', id: 'eap', ph: 'eap', vn: 'eap', mm: 'eap', th: 'eap', kh: 'eap', la: 'eap', my: 'eap',
+  mn: 'eap', pg: 'eap', fj: 'eap', tl: 'eap', sb: 'eap', vu: 'eap', ws: 'eap', to: 'eap', tv: 'eap',
+  ki: 'eap', mh: 'eap', fm: 'eap', nr: 'eap', pw: 'eap',
+  br: 'lac', mx: 'lac', ar: 'lac', co: 'lac', pe: 'lac', cl: 'lac', ve: 'lac', ec: 'lac', bo: 'lac',
+  gt: 'lac', ht: 'lac', do: 'lac', sv: 'lac', hn: 'lac', ni: 'lac', cr: 'lac', pa: 'lac', py: 'lac',
+  uy: 'lac', jm: 'lac', cu: 'lac', tt: 'lac', bs: 'lac', bb: 'lac', gy: 'lac', sr: 'lac', ag: 'lac',
+  bz: 'lac', dm: 'lac', gd: 'lac', kn: 'lac', lc: 'lac', vc: 'lac',
+  eg: 'mna', ma: 'mna', tn: 'mna', dz: 'mna', ly: 'mna', sy: 'mna', jo: 'mna', lb: 'mna', iq: 'mna',
+  ir: 'mna', ye: 'mna', dj: 'mna', ps: 'mna',
+  ua: 'eca', tr: 'eca', kz: 'eca', uz: 'eca', az: 'eca', am: 'eca', ge: 'eca', kg: 'eca', tj: 'eca',
+  tm: 'eca', md: 'eca', by: 'eca', al: 'eca', ba: 'eca', mk: 'eca', me: 'eca', rs: 'eca', xk: 'eca',
+  pl: 'eca', ro: 'eca',
+};
+
+const ASSETS_REGION_LABEL: Record<string, string> = {
+  afe: 'Eastern & Southern Africa (AFE)',
+  afw: 'Western & Central Africa (AFW)',
+  eap: 'East Asia & Pacific (EAP)',
+  eca: 'Europe & Central Asia (ECA)',
+  lac: 'Latin America & Caribbean (LAC)',
+  mna: 'Middle East & North Africa (MNA)',
+  sar: 'South Asia Region (SAR)',
+};
+
+// Workspace-wide region totals (queries across all collections).
+const ASSETS_REGION_QUERIES: Record<string, number> = {
+  afe: 6420, afw: 4180, eap: 5260, eca: 2240, lac: 3680, mna: 2860, sar: 4910,
+};
+
+const ASSETS_COUNTRY_LABEL: Record<string, string> = {
+  ke: 'Kenya', et: 'Ethiopia', tz: 'Tanzania', za: 'South Africa', ng: 'Nigeria',
+  in: 'India', bd: 'Bangladesh', pk: 'Pakistan', np: 'Nepal',
+  br: 'Brazil', mx: 'Mexico', co: 'Colombia',
+  id: 'Indonesia', ph: 'Philippines', vn: 'Vietnam', cn: 'China',
+  eg: 'Egypt', ma: 'Morocco', tr: 'Türkiye',
+};
+
+const ASSETS_COUNTRY_QUERIES: Record<string, number> = {
+  ke: 1640, et:  920, tz:  840, za:  720, ng: 1280,
+  in: 2120, bd: 1080, pk:  860, np:  580,
+  br: 1480, mx: 1080, co:  760,
+  id: 1320, ph:  920, vn:  820, cn: 1080,
+  eg:  720, ma:  540, tr:  420,
+};
+
+// Per-country intensity (0–6) for tinting. Higher = darker.
+const ASSETS_MAP_INTENSITY: Record<string, number> = {
+  ke: 6, et: 6, tz: 6, ug: 5, rw: 5, mw: 4, mz: 5, zm: 5, zw: 4,
+  za: 5, mg: 4, ao: 4, ng: 6, gh: 5, sn: 4, ci: 5, cm: 4, cd: 5,
+  in: 6, bd: 6, pk: 5, np: 5, lk: 4, af: 4,
+  br: 6, mx: 5, co: 5, pe: 5, ar: 4, cl: 4,
+  id: 6, ph: 5, vn: 5, mm: 5, kh: 4, th: 4,
+  eg: 5, ma: 5, tn: 4, dz: 4, ye: 4,
+  ua: 4, uz: 4, kz: 4, tr: 4,
+};

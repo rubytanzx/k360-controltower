@@ -1,246 +1,233 @@
-import { Component, computed, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Component, computed, inject, signal } from '@angular/core';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TablerIconComponent } from '@tabler/icons-angular';
-import { FilterBar } from '../shared/filter-bar/filter-bar';
+import { HierFilter } from '../shared/hier-filter/hier-filter';
+import {
+  REGION_GROUPS, VPU_GROUPS, regionCountrySelectionFromParams,
+} from '../shared/hier-filter/hier-filter-catalog';
+import { DateRangeFilter } from '../shared/date-range-filter/date-range-filter';
 
-type TopicId = 'eg' | 'tor' | 'exp' | 'cli' | 'les' | 'hf' | 'oth';
-type Trend = 'up' | 'down' | 'stable';
+type KptTab = 'knowledge' | 'people' | 'tasks';
+type TmMode = 'volume' | 'repeat';
+type Workspace = 'wb' | 'ifc';
+type FrictionDomain = 'knowledge' | 'people' | 'task';
+type FrictionDirection = 'up' | 'down';
+type FrictionMetricIcon = 'thumbs-down' | 'arrow-up' | 'arrow-down' | 'none';
 
-interface Topic {
-  id: TopicId;
-  name: string;
-  count: number;
-  pct: number;
-  trend: Trend;
-  color: string;
-}
+/** What kind of friction this signal represents — drives the headline metric + tone. */
+type FrictionKind =
+  | 'dislike'         // High share of dislikes on the answer
+  | 'clarify'         // Users re-asking with corrected intent
+  | 'low-expert'      // People search returning few / dropping expert visits
+  | 'low-download'    // Task output not being saved / downloaded
+  | 'outdated';       // Sources cited are outdated / superseded
+
+interface KpiMetric { value: string; label?: string; delta?: string; }
+interface PageKpi   { title: string; metrics: KpiMetric[]; sub?: string; }
 
 interface TreemapTopic {
-  id: TopicId;
+  id: string;
   name: string;
   pct: number;
   count: number;
   color: string;
-  prompts: string[];
   trending?: boolean;
 }
 
-interface ActionType {
-  name: string;
-  count: number;
-  pct: number;
-  icon: string;
-  color: string;
-}
-
-interface UnitRow {
-  name: string;
-  /** counts per topic, same order as topics */
-  counts: number[];
+interface FrictionSignal {
+  domain: FrictionDomain;
+  topic: string;
+  /** Topic id used to navigate to the category detail page. */
+  topicId: string;
+  kind: FrictionKind;
+  /** Headline friction metric value (e.g. 75, 32, 18). */
+  metricValue: number;
+  /** Unit / suffix appended to the value (e.g. "%", "" for raw counts). */
+  metricUnit: string;
+  /** Plain-language description of what the metric measures. */
+  metricCaption: string;
+  /** Volume context: count of prompts/searches/generations behind the signal. */
+  volume: number;
+  volumeLabel: string; // e.g. "prompts", "searches", "generations"
+  /** Direction of change vs. prior period. */
+  direction: FrictionDirection;
+  changePct: number;
 }
 
 @Component({
   selector: 'app-prompts',
-  imports: [TablerIconComponent, FilterBar, RouterLink],
+  imports: [TablerIconComponent, RouterLink, HierFilter, DateRangeFilter],
   templateUrl: './prompts.html',
   styleUrl: './prompts.css',
 })
 export class Prompts {
-  // ---- KPIs ----
-  readonly totalPrompts = 282;
-  readonly searchSuccessPct = 80;
-  readonly promptsWithActionsPct = 34;
-  readonly uniqueTopics = 7;
+  // ---- Workspace toggle (WB / IFC) ----
+  readonly workspace = signal<Workspace>('wb');
+  setWorkspace(w: Workspace) { this.workspace.set(w); }
 
-  // ---- Topic treemap (mirrors the landing-page Thematic Breakdown) ----
-  readonly treemap: TreemapTopic[][] = [
+  // ---- Hierarchical filter catalogs ----
+  readonly regionGroups = REGION_GROUPS;
+  readonly vpuGroups    = VPU_GROUPS;
+
+  /** Pre-applied Region/Country from the URL — set when the user arrives from
+   *  the dashboard country drawer's "View Prompts" link (?country=ke or
+   *  ?region=afe). Empty otherwise. */
+  readonly initialRegionCountry = (() => {
+    const q = inject(ActivatedRoute).snapshot.queryParamMap;
+    return regionCountrySelectionFromParams({ region: q.get('region'), country: q.get('country') });
+  })();
+
+  // ---- KPI row — anchored to K360 Master Data Extract ----
+  // Adobe Analytics (Dec 1 – Jan 2): 639 chat prompts, 450 unique.
+  // Power BI (Jan 1 – May 19): 3,095 unique visitors / 2,923 repeat / 16.73% adoption.
+  readonly pageKpis: PageKpi[] = [
+    { title: 'Total No. of Prompts',         metrics: [{ value: '639',   delta: '+12%' }], sub: '450 unique prompts' },
+    { title: 'Staff Adoption Rate',          metrics: [{ value: '17%',   delta: '+2.4pp' }], sub: 'target: 50% by Dec 2026' },
+    { title: 'New vs Returning Users',       metrics: [
+      { value: '172',   label: 'new' },
+      { value: '2,923', label: 'returning' },
+    ] },
+    { title: 'Average K360 Views per User',  metrics: [{ value: '3',     delta: '+0.4' }] },
+    { title: 'Exploration Depth',            metrics: [{ value: '3.2',   delta: '+0.3' }], sub: 'page views per session' },
+  ];
+
+  // ---- KPT tabs for the treemap section ----
+  readonly kptTabDefs = [
+    { id: 'knowledge' as KptTab, label: 'Knowledge' },
+    { id: 'people' as KptTab, label: 'People' },
+    { id: 'tasks' as KptTab, label: 'Tasks' },
+  ];
+  readonly activeTab = signal<KptTab>('knowledge');
+
+  // ---- Toggle: By Volume / By Repeat Rate ----
+  readonly tmMode = signal<TmMode>('volume');
+  setTmMode(m: TmMode) { this.tmMode.set(m); }
+
+  // ---- Treemap data (one matrix per tab) ----
+  private readonly knowledgeByVolume: TreemapTopic[][] = [
     [
-      {
-        id: 'eg',
-        name: 'Economic Growth & Labor Markets',
-        pct: 28,
-        count: 79,
-        color: '#2c8aff',
-        prompts: [
-          'What are the latest labor market trends in MNA?',
-          'Compare GDP growth across EAP middle-income countries',
-          'Summarize recent inflation projections for SSA',
-        ],
-      },
-      {
-        id: 'tor',
-        name: 'TOR Generation',
-        pct: 17,
-        count: 47,
-        color: '#a855f7',
-        prompts: [
-          'Draft a TOR for a public expenditure review in Kenya',
-          'Generate scope of work for a private sector assessment',
-          'TOR template for an education sector loan operation',
-        ],
-      },
-      {
-        id: 'oth',
-        name: 'Other',
-        pct: 14,
-        count: 40,
-        color: '#64748b',
-        prompts: [
-          'Ad-hoc cross-cutting queries',
-          'Miscellaneous operational questions',
-          'Unclassified or general inquiries',
-        ],
-      },
+      { id: 'eg',  name: 'Ghana Economic Growth',     pct: 28, count: 79, color: '#2c8aff' },
+      { id: 'ml',  name: 'Morocco Labor Markets',     pct: 17, count: 47, color: '#a855f7', trending: true },
+      { id: 'oth', name: 'Other',                     pct: 14, count: 40, color: '#5d6b7e' },
     ],
     [
-      {
-        id: 'exp',
-        name: 'Expertise / People Search',
-        pct: 13,
-        count: 37,
-        color: '#f59e0b',
-        prompts: [
-          'Who are our top experts on climate adaptation?',
-          'Find specialists in digital ID systems',
-          'Staff with experience in fragile-state operations',
-        ],
-      },
-      {
-        id: 'cli',
-        name: 'Climate & Infrastructure',
-        pct: 11,
-        count: 31,
-        color: '#22d3ee',
-        trending: true,
-        prompts: [
-          'Compare climate finance flows by region',
-          'Best practices for resilient transport infrastructure',
-          'Energy transition strategy for coal-dependent economies',
-        ],
-      },
-      {
-        id: 'les',
-        name: 'Lessons Explorer',
-        pct: 9,
-        count: 26,
-        color: '#14b8a6',
-        prompts: [
-          'Lessons learned from past PFM reforms',
-          'What worked in agriculture interventions in West Africa?',
-          'Implementation lessons from urban resilience projects',
-        ],
-      },
-      {
-        id: 'hf',
-        name: 'Housing & Finance',
-        pct: 8,
-        count: 22,
-        color: '#ec4899',
-        prompts: [
-          'Housing finance markets in LAC',
-          'Affordable housing policy frameworks',
-          'Mortgage market development indicators',
-        ],
-      },
+      { id: 'exp', name: 'Expertise / People Search', pct: 13, count: 37, color: '#f59e0b' },
+      { id: 'cli', name: 'Climate & Infrastructure',  pct: 11, count: 31, color: '#22d3ee' },
+      { id: 'les', name: 'Lessons Explorer',          pct: 9,  count: 26, color: '#14b8a6' },
+      { id: 'hf',  name: 'Housing & Finance',         pct: 8,  count: 22, color: '#ec4899' },
     ],
   ];
 
-  readonly topThemes = this.treemap[0];
+  private readonly knowledgeByRepeat: TreemapTopic[][] = [
+    [
+      { id: 'eg',  name: 'Ghana Economic Growth',     pct: 32, count: 56, color: '#2c8aff' },
+      { id: 'oth', name: 'Other',                     pct: 18, count: 32, color: '#5d6b7e' },
+      { id: 'ml',  name: 'Morocco Labor Markets',     pct: 14, count: 24, color: '#a855f7' },
+    ],
+    [
+      { id: 'cli', name: 'Climate & Infrastructure',  pct: 12, count: 21, color: '#22d3ee' },
+      { id: 'exp', name: 'Expertise / People Search', pct: 10, count: 18, color: '#f59e0b' },
+      { id: 'les', name: 'Lessons Explorer',          pct: 8,  count: 14, color: '#14b8a6' },
+      { id: 'hf',  name: 'Housing & Finance',         pct: 6,  count: 11, color: '#ec4899' },
+    ],
+  ];
 
-  readonly hoveredTopic = signal<TreemapTopic | null>(null);
+  private readonly peopleByVolume: TreemapTopic[][] = [
+    [
+      { id: 'exp',  name: 'Expertise Search by Sector', pct: 45, count: 37, color: '#a855f7' },
+    ],
+    [
+      { id: 'peer', name: 'Peer Review Requests',       pct: 30, count: 24, color: '#c4b5fd' },
+      { id: 'cel',  name: 'Country Expert Locator',     pct: 25, count: 20, color: '#22d3ee' },
+    ],
+  ];
+
+  private readonly peopleByRepeat: TreemapTopic[][] = [
+    [
+      { id: 'exp',  name: 'Expertise Search by Sector', pct: 50, count: 22, color: '#a855f7' },
+    ],
+    [
+      { id: 'cel',  name: 'Country Expert Locator',     pct: 28, count: 12, color: '#22d3ee' },
+      { id: 'peer', name: 'Peer Review Requests',       pct: 22, count: 10, color: '#c4b5fd' },
+    ],
+  ];
+
+  private readonly tasksByVolume: TreemapTopic[][] = [
+    [
+      { id: 'tor', name: 'TOR Generation',                  pct: 48, count: 47, color: '#38bdf8' },
+    ],
+    [
+      { id: 'syn', name: 'Synthesis & Research Generation', pct: 30, count: 29, color: '#22d3ee' },
+      { id: 'doc', name: 'Document & Portfolio Analysis',   pct: 22, count: 21, color: '#ec4899' },
+    ],
+  ];
+
+  private readonly tasksByRepeat: TreemapTopic[][] = [
+    [
+      { id: 'tor', name: 'TOR Generation',                  pct: 52, count: 28, color: '#38bdf8' },
+    ],
+    [
+      { id: 'doc', name: 'Document & Portfolio Analysis',   pct: 26, count: 14, color: '#ec4899' },
+      { id: 'syn', name: 'Synthesis & Research Generation', pct: 22, count: 12, color: '#22d3ee' },
+    ],
+  ];
+
+  readonly activeTreemap = computed(() => {
+    const tab = this.activeTab();
+    const mode = this.tmMode();
+    if (tab === 'knowledge') return mode === 'volume' ? this.knowledgeByVolume : this.knowledgeByRepeat;
+    if (tab === 'people')    return mode === 'volume' ? this.peopleByVolume    : this.peopleByRepeat;
+    return                          mode === 'volume' ? this.tasksByVolume     : this.tasksByRepeat;
+  });
+
   readonly rowFlex = (row: TreemapTopic[]) => row.reduce((s, t) => s + t.pct, 0);
 
-  readonly aiSummary =
-    'Prompts cluster into 7 themes this period. Economic Growth & Labor Markets leads with ' +
-    '28% of volume, while Climate & Infrastructure is trending up as energy-transition and ' +
-    'resilient-infra queries gain pace. TOR Generation is now the second largest driver of ' +
-    'activity (17%), and Lessons Explorer holds steady around 9%. Open a tile to see the ' +
-    'sub-topic breakdown and recent prompt feedback.';
-
-  // ---- Topics ----
-  readonly topics: Topic[] = [
-    { id: 'eg',  name: 'Economic Growth & Labor Markets', count: 79, pct: 28, trend: 'up',     color: '#2c8aff' },
-    { id: 'tor', name: 'TOR Generation',                  count: 47, pct: 17, trend: 'up',     color: '#a855f7' },
-    { id: 'oth', name: 'Other',                           count: 40, pct: 14, trend: 'stable', color: '#64748b' },
-    { id: 'exp', name: 'Expertise / People Search',       count: 37, pct: 13, trend: 'stable', color: '#f59e0b' },
-    { id: 'cli', name: 'Climate & Infrastructure',        count: 31, pct: 11, trend: 'up',     color: '#22d3ee' },
-    { id: 'les', name: 'Lessons Explorer',                count: 26, pct:  9, trend: 'stable', color: '#14b8a6' },
-    { id: 'hf',  name: 'Housing & Finance',               count: 22, pct:  8, trend: 'stable', color: '#ec4899' },
+  // ---- Knowledge Friction Signals (right column) ----
+  // Each row tells a different friction story so the list is useful at a glance.
+  // Captions are two short words each — they wrap to 2 lines so values align.
+  readonly frictionSignals: FrictionSignal[] = [
+    {
+      domain: 'knowledge', topic: 'Ghana Economic Growth', topicId: 'eg',
+      kind: 'dislike',
+      metricValue: 75, metricUnit: '%', metricCaption: 'answers disliked',
+      volume: 126, volumeLabel: 'prompts',
+      direction: 'up', changePct: 20,
+    },
+    {
+      domain: 'people', topic: 'Energy Sector Experts', topicId: 'exp',
+      kind: 'clarify',
+      metricValue: 32, metricUnit: '%', metricCaption: 'intent clarification rate',
+      volume: 64, volumeLabel: 'searches',
+      direction: 'down', changePct: 22,
+    },
+    {
+      domain: 'task', topic: 'TOR Generation — Climate', topicId: 'tor',
+      kind: 'low-download',
+      metricValue: 12, metricUnit: '%', metricCaption: 'downloads',
+      volume: 142, volumeLabel: 'generations',
+      direction: 'down', changePct: 6,
+    },
   ];
 
-  // ---- Emerging themes time series ----
-  readonly months = ['Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb'];
-  readonly emerging = [
-    { id: 'eg',  name: 'Economic Growth',         data: [6, 8, 11, 14, 18, 22], color: '#2c8aff' },
-    { id: 'tor', name: 'TOR Generation',          data: [5, 6, 7, 8, 10, 11],  color: '#a855f7' },
-    { id: 'cli', name: 'Climate & Infrastructure',data: [2, 3, 4, 6, 8, 8],    color: '#22d3ee', trending: true },
-    { id: 'les', name: 'Lessons Explorer',        data: [3, 4, 4, 5, 5, 5],    color: '#14b8a6' },
-  ];
-
-  // ---- Actions breakdown ----
-  readonly actions: ActionType[] = [
-    { name: 'Copied to clipboard', count: 43, pct: 45, icon: 'copy',        color: '#1ad6ff' },
-    { name: 'Saved as Word',       count: 24, pct: 25, icon: 'file-export', color: '#2c8aff' },
-    { name: 'Saved as PowerPoint', count: 17, pct: 18, icon: 'file-export', color: '#fb923c' },
-    { name: 'Bookmarked',          count: 12, pct: 12, icon: 'star',        color: '#14b8a6' },
-  ];
-
-  // ---- Topic mix by unit ----
-  // counts ordered by topics list above (eg, tor, oth, exp, cli, les, hf)
-  readonly units: UnitRow[] = [
-    { name: 'MTI',   counts: [38, 4,  5, 12, 4,  7, 9] },
-    { name: 'FCI',   counts: [22, 6,  8, 8,  3,  5, 13] },
-    { name: 'INFRA', counts: [10, 15, 12, 7, 18, 6, 0] },
-    { name: 'HD',    counts: [5,  22, 12, 6, 3,  8, 0] },
-    { name: 'POV',   counts: [4,  0,  3, 4,  3,  2, 0] },
-  ];
-
-  readonly unitRows = computed(() =>
-    this.units.map((u) => {
-      const total = u.counts.reduce((s, n) => s + n, 0);
-      return {
-        name: u.name,
-        total,
-        segments: u.counts.map((n, i) => ({
-          pct: total > 0 ? (n / total) * 100 : 0,
-          color: this.topics[i].color,
-          name: this.topics[i].name,
-          count: n,
-        })),
-      };
-    }),
-  );
-
-  // ---- Multi-line chart paths ----
-  readonly chartWidth = 720;
-  readonly chartHeight = 240;
-  private readonly maxVal = 25;
-
-  private linePoints(data: number[]): { x: number; y: number }[] {
-    const stepX = this.chartWidth / (data.length - 1);
-    return data.map((v, i) => ({
-      x: i * stepX,
-      y: this.chartHeight - (v / this.maxVal) * (this.chartHeight - 30) - 15,
-    }));
+  /** Maps friction-signal domain to KPT tab id used by the analysis page. */
+  kptForDomain(d: FrictionDomain): 'knowledge' | 'people' | 'tasks' {
+    if (d === 'knowledge') return 'knowledge';
+    if (d === 'people')    return 'people';
+    return 'tasks';
   }
 
-  private smoothPath(pts: { x: number; y: number }[]): string {
-    if (pts.length === 0) return '';
-    let d = `M ${pts[0].x},${pts[0].y}`;
-    for (let i = 0; i < pts.length - 1; i++) {
-      const p0 = pts[i];
-      const p1 = pts[i + 1];
-      const cpx = (p0.x + p1.x) / 2;
-      d += ` C ${cpx},${p0.y} ${cpx},${p1.y} ${p1.x},${p1.y}`;
-    }
-    return d;
+  domainLabel(d: FrictionDomain): string {
+    if (d === 'knowledge') return 'Knowledge';
+    if (d === 'people') return 'People';
+    return 'Task';
   }
 
-  readonly emergingPaths = computed(() =>
-    this.emerging.map((line) => ({
-      ...line,
-      path: this.smoothPath(this.linePoints(line.data)),
-      lastPoint: this.linePoints(line.data).slice(-1)[0],
-    })),
-  );
+  /** Tabler icon name used as the kind glyph on the left of each signal. */
+  kindIcon(k: FrictionKind): string {
+    if (k === 'dislike')      return 'thumb-down';
+    if (k === 'clarify')      return 'message-report';
+    if (k === 'low-expert')   return 'users';
+    if (k === 'outdated')     return 'alert-triangle';
+    return 'file-download';
+  }
 }

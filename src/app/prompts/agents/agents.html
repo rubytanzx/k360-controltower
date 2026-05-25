@@ -1,7 +1,7 @@
 <header class="page-header">
   <div class="header-text">
     <a class="back-link" routerLink="/prompts">
-      <tabler-icon icon="chevron-left" [size]="14" />Back to Prompts
+      <tabler-icon icon="chevron-left" [size]="14" />Back to Prompts Overview
     </a>
     <h1 class="title">Agents Analysis</h1>
     <p class="subtitle">Per-agent engagement, sentiment &amp; subcategory breakdown</p>
@@ -12,8 +12,26 @@
   </button>
 </header>
 
+<!-- Level 1: KPT domain tabs -->
+<nav class="kpt-domain-tabs" role="tablist">
+  @for (d of kptDomains; track d.id) {
+    <button
+      type="button"
+      class="kpt-domain-tab"
+      role="tab"
+      [class.is-active]="kptDomain() === d.id"
+      [style.--domain-color]="d.color"
+      (click)="setDomain(d.id)"
+    >
+      <span class="domain-dot" [style.background]="d.color"></span>
+      <span class="domain-label">{{ d.label }}</span>
+    </button>
+  }
+</nav>
+
+<!-- Level 2: agent pill tabs -->
 <nav class="agent-tabs" role="tablist">
-  @for (a of agents; track a.id) {
+  @for (a of visibleAgents(); track a.id) {
     <button
       class="agent-tab"
       role="tab"
@@ -23,23 +41,25 @@
     >
       <span class="tab-dot" [style.background]="a.color"></span>
       <span class="tab-name">{{ a.short }}</span>
-      <span class="tab-count">{{ a.count }}</span>
+      <span class="tab-count">{{ a.count.toLocaleString() }}</span>
     </button>
   }
 </nav>
 
+<!-- KPI grid: 4 cards -->
 <section class="kpi-grid">
   <article class="card kpi-card">
     <header class="kpi-head">
-      <span class="kpi-title">Total Prompts</span>
+      <span class="kpi-title">Total Sessions</span>
       <span class="kpi-icon">
         <tabler-icon icon="messages" [size]="18" />
       </span>
     </header>
     <div class="kpi-row">
-      <span class="kpi-value">{{ current().count }}</span>
+      <span class="kpi-value">{{ current().count.toLocaleString() }}</span>
     </div>
-    <p class="kpi-sub">via {{ current().short }}</p>
+    <p class="kpi-sub">page views via {{ current().short }}</p>
+    <p class="kpi-secondary">{{ current().totalSecondary }}</p>
   </article>
 
   <article class="card kpi-card feedback-card">
@@ -60,10 +80,11 @@
       </span>
     </div>
     <div class="feedback-bar">
-      <div class="feedback-bar-up" [style.width.%]="sentimentPct()"></div>
+      <div class="feedback-bar-up"   [style.width.%]="sentimentPct()"></div>
       <div class="feedback-bar-down" [style.width.%]="100 - sentimentPct()"></div>
     </div>
     <p class="kpi-sub">{{ sentimentPct() }}% positive</p>
+    <p class="kpi-secondary">{{ current().feedbackRegion }}</p>
   </article>
 
   <article class="card kpi-card">
@@ -76,17 +97,44 @@
     <div class="kpi-row">
       <span class="kpi-value">{{ clarificationPct() }}%</span>
     </div>
-    <p class="kpi-sub">queries needing a follow-up dialog</p>
+    <p class="kpi-sub">vs 50.54% platform average</p>
     <div class="clarif-bar">
       <div class="clarif-bar-fill" [style.width.%]="clarificationPct()"></div>
+    </div>
+    <p class="kpi-note">{{ current().clarificationNote }}</p>
+  </article>
+
+  <article class="card kpi-card supply-card" [attr.data-supply]="current().collectionMatch.status">
+    <header class="kpi-head">
+      <span class="kpi-title">Knowledge Supply</span>
+      <span class="kpi-icon supply-icon">
+        <tabler-icon icon="database" [size]="18" />
+      </span>
+    </header>
+    <div class="supply-status">
+      <span class="supply-dot"></span>
+      <span class="supply-label">{{ current().collectionMatch.label }}</span>
+    </div>
+    <p class="kpi-sub supply-sub">{{ current().collectionMatch.sub }}</p>
+    <div class="supply-collections">
+      <span class="supply-collections-head">Top collections used in responses</span>
+      <ul class="supply-collections-list">
+        @for (c of current().collectionMatch.topCollections; track c.name) {
+          <li>
+            <span class="coll-name">{{ c.name }}</span>
+            <span class="coll-uses">{{ c.uses.toLocaleString() }}</span>
+          </li>
+        }
+      </ul>
     </div>
   </article>
 </section>
 
+<!-- Subcategories table -->
 <section class="card subcat-card">
   <header class="card-head">
     <h3 class="card-title">Subcategories</h3>
-    <span class="muted">breakdown of {{ current().count }} prompts via {{ current().short }}</span>
+    <span class="muted">breakdown of {{ current().short }} usage</span>
   </header>
 
   <table class="subcat-table">
@@ -94,7 +142,9 @@
       <tr>
         <th class="col-name">Category</th>
         <th class="col-prompts">Prompts</th>
-        <th class="col-util">Source Utilisation</th>
+        <th class="col-repeat">Repeat Rate</th>
+        <th class="col-coverage">Collection</th>
+        <th class="col-util">Retrieval Success Rate</th>
         <th class="col-pos">Positive</th>
         <th class="col-neg">Negative</th>
       </tr>
@@ -106,14 +156,31 @@
             <span class="subcat-name-link">{{ s.name }}</span>
           </td>
           <td class="col-prompts">{{ s.prompts }}</td>
+          <td class="col-repeat">
+            <div class="repeat-cell">
+              <span class="repeat-pct">{{ s.repeatRate }}%</span>
+              <span class="repeat-bar">
+                <span class="repeat-bar-fill" [style.width.%]="s.repeatRate"></span>
+              </span>
+            </div>
+          </td>
+          <td class="col-coverage">
+            <span class="cov-icon" [attr.data-coverage]="s.coverage">
+              @switch (s.coverage) {
+                @case ('full')    { <tabler-icon icon="circle-check" [size]="16" /> }
+                @case ('partial') { <tabler-icon icon="alert-triangle" [size]="16" /> }
+                @case ('none')    { <tabler-icon icon="circle-x" [size]="16" /> }
+              }
+            </span>
+          </td>
           <td class="col-util">
             <div class="util-cell">
-              <span class="util-pct">{{ s.sourceUtilisation }}%</span>
+              <span class="util-pct">{{ s.retrievalSuccess }}%</span>
               <div class="util-bar">
                 <div
                   class="util-bar-fill"
-                  [attr.data-tier]="s.sourceUtilisation >= 75 ? 'good' : s.sourceUtilisation >= 55 ? 'warn' : 'bad'"
-                  [style.width.%]="s.sourceUtilisation"
+                  [attr.data-tier]="s.retrievalSuccess >= 75 ? 'good' : s.retrievalSuccess >= 55 ? 'warn' : 'bad'"
+                  [style.width.%]="s.retrievalSuccess"
                 ></div>
               </div>
             </div>
@@ -132,6 +199,85 @@
       }
     </tbody>
   </table>
+</section>
+
+<!-- Lower panels: Top Prompts + Regional Demand -->
+<section class="lower-panels">
+  <article class="card">
+    <header class="card-head">
+      <h3 class="card-title">Top Prompts · {{ current().short }}</h3>
+      <span class="muted">top 5 by occurrence</span>
+    </header>
+    <ol class="top-prompts">
+      @for (p of current().topPrompts; track p.text; let i = $index) {
+        <li class="top-prompt-row">
+          <span class="top-prompt-rank">{{ i + 1 }}</span>
+          <span class="top-prompt-text">{{ p.text }}</span>
+          <span class="top-prompt-count">{{ p.count }}</span>
+        </li>
+      }
+    </ol>
+  </article>
+
+  <article class="card">
+    <header class="card-head">
+      <h3 class="card-title">Demand by Region · {{ current().short }}</h3>
+      <span class="muted">query volume per region</span>
+    </header>
+    <ul class="region-list">
+      @for (r of current().regionalDemand; track r.region) {
+        <li class="region-row">
+          <span class="region-label">
+            {{ r.region }}@if (r.country) { <span class="region-country"> ({{ r.country }})</span> }
+          </span>
+          <div class="region-bar">
+            <div class="region-bar-fill" [style.width.%]="r.pct"></div>
+          </div>
+          <span class="region-pct">{{ r.pct }}</span>
+        </li>
+      }
+    </ul>
+    @if (current().regionalCaption) {
+      <p class="region-caption">{{ current().regionalCaption }}</p>
+    }
+  </article>
+</section>
+
+<!-- Friction signal row -->
+<section class="friction-row">
+  <article class="card friction-card">
+    <div class="friction-head">
+      <span class="friction-title">Repeat Query Rate</span>
+    </div>
+    <div class="friction-value-row">
+      <span class="friction-value">{{ current().friction.repeatRate }}</span>
+    </div>
+    <span class="friction-note">{{ current().friction.repeatNote }}</span>
+  </article>
+
+  <article class="card friction-card">
+    <div class="friction-head">
+      <span class="friction-title">Clarification Rate</span>
+    </div>
+    <div class="friction-value-row">
+      <span class="friction-value">{{ clarificationPct() }}%</span>
+      <span class="friction-chip" [attr.data-tone]="current().friction.clarificationTone">
+        {{ current().friction.clarificationLabel }}
+      </span>
+    </div>
+    <span class="friction-note">{{ current().friction.clarificationCompare }}</span>
+  </article>
+
+  <article class="card friction-card">
+    <div class="friction-head">
+      <span class="friction-title">Collection Gap</span>
+    </div>
+    <div class="friction-value-row">
+      <span class="friction-chip" [attr.data-tone]="current().friction.collectionTone">
+        {{ current().friction.collectionGap }}
+      </span>
+    </div>
+  </article>
 </section>
 
 <!-- Subcategory drawer -->

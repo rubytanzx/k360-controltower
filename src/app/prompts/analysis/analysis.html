@@ -1,272 +1,435 @@
-<header class="page-header">
-  <div class="header-text">
-    <a class="back-link" routerLink="/prompts">
-      <tabler-icon icon="chevron-left" [size]="14" />Back to Prompts
-    </a>
-    <h1 class="title">Prompts Analysis</h1>
-    <p class="subtitle">Per-topic engagement, sentiment &amp; clarity</p>
-  </div>
-  <button class="bell" aria-label="Notifications">
-    <tabler-icon icon="bell" [size]="26" />
-    <span class="badge">4</span>
-  </button>
-</header>
-
-<nav class="topic-tabs" role="tablist">
-  @for (t of topics; track t.id) {
-    <button
-      class="topic-tab"
-      role="tab"
-      [class.is-active]="active() === t.id"
-      [style.--tab-color]="t.color"
-      (click)="setTopic(t.id)"
-    >
-      <span class="tab-dot" [style.background]="t.color"></span>
-      <span class="tab-name">{{ t.short }}</span>
-      <span class="tab-count">{{ t.count }}</span>
-      @if (t.trending) { <span class="tab-trending">↑</span> }
-    </button>
-  }
-</nav>
-
-<section class="kpi-grid">
-  <article class="card kpi-card">
-    <header class="kpi-head">
-      <span class="kpi-title">Total Prompts</span>
-      <span class="kpi-icon">
-        <tabler-icon icon="messages" [size]="18" />
-      </span>
-    </header>
-    <div class="kpi-row">
-      <span class="kpi-value">{{ current().count }}</span>
+@if (category(); as c) {
+  <header class="page-header">
+    <div class="page-header-title">
+      <a class="back-link" routerLink="/prompts">
+        <tabler-icon icon="chevron-left" [size]="14" />
+        Back to Prompts Overview
+      </a>
+      <h1 class="title">{{ c.name }}</h1>
+      <p class="page-subtitle">
+        <span class="subtitle-key">Topic Category:</span>
+        <span class="subtitle-val">{{ domainLabel(c.domain) }}</span>
+        <span class="subtitle-sep" aria-hidden="true">·</span>
+        <span class="subtitle-key">Updated:</span>
+        <span class="subtitle-val">{{ c.updatedAgo }}</span>
+      </p>
     </div>
-    <p class="kpi-sub">in {{ current().short }}</p>
-  </article>
 
-  <article class="card kpi-card feedback-card">
-    <header class="kpi-head">
-      <span class="kpi-title">Feedback</span>
-      <span class="kpi-icon good">
-        <tabler-icon icon="thumb-up" [size]="18" />
-      </span>
-    </header>
-    <div class="feedback-row">
-      <span class="thumb-up">
-        <tabler-icon icon="thumb-up" [size]="14" />
-        {{ current().thumbsUp }}
-      </span>
-      <span class="thumb-down">
-        <tabler-icon icon="thumb-down" [size]="14" />
-        {{ current().thumbsDown }}
-      </span>
+    <div class="analysis-filter-bar">
+      <app-hier-filter
+        placeholder="Select Region/Country"
+        [groups]="regionGroups"
+        [initialSelected]="initialRegionCountry"
+        (selectionChange)="currentRegionCountry.set($event)"
+      />
+      <app-date-range-filter />
     </div>
-    <div class="feedback-bar">
-      <div
-        class="feedback-bar-up"
-        [style.width.%]="sentimentPct()"
-      ></div>
-      <div
-        class="feedback-bar-down"
-        [style.width.%]="100 - sentimentPct()"
-      ></div>
-    </div>
-    <p class="kpi-sub">{{ sentimentPct() }}% positive</p>
-  </article>
-
-  <article class="card kpi-card">
-    <header class="kpi-head">
-      <span class="kpi-title">Intent Clarification Rate</span>
-      <span class="kpi-icon warn">
-        <tabler-icon icon="help-circle" [size]="18" />
-      </span>
-    </header>
-    <div class="kpi-row">
-      <span class="kpi-value">{{ clarificationPct() }}%</span>
-    </div>
-    <p class="kpi-sub">queries needing a follow-up dialog</p>
-    <div class="clarif-bar">
-      <div class="clarif-bar-fill" [style.width.%]="clarificationPct()"></div>
-    </div>
-  </article>
-</section>
-
-<section class="card subcat-card">
-  <header class="card-head">
-    <h3 class="card-title">Subcategories</h3>
-    <span class="muted">breakdown of {{ current().count }} prompts in {{ current().short }}</span>
   </header>
 
-  <table class="subcat-table">
-    <thead>
-      <tr>
-        <th class="col-name">Category</th>
-        <th class="col-prompts">Prompts</th>
-        <th class="col-util">Source Utilisation</th>
-        <th class="col-pos">Positive</th>
-        <th class="col-neg">Negative</th>
-      </tr>
-    </thead>
-    <tbody>
-      @for (s of current().subcategories; track s.name) {
-        <tr class="subcat-row" (click)="openDrawer(s)">
-          <td class="col-name">
-            <span class="subcat-name-link">{{ s.name }}</span>
-          </td>
-          <td class="col-prompts">{{ s.prompts }}</td>
-          <td class="col-util">
-            <div class="util-cell">
-              <span class="util-pct">{{ s.sourceUtilisation }}%</span>
-              <div class="util-bar">
-                <div
-                  class="util-bar-fill"
-                  [attr.data-tier]="s.sourceUtilisation >= 75 ? 'good' : s.sourceUtilisation >= 55 ? 'warn' : 'bad'"
-                  [style.width.%]="s.sourceUtilisation"
-                ></div>
-              </div>
-            </div>
-          </td>
-          <td class="col-pos">
-            <span class="pct-pill pos">
-              <tabler-icon icon="thumb-up" [size]="11" />{{ s.positivePct }}%
-            </span>
-          </td>
-          <td class="col-neg">
-            <span class="pct-pill neg">
-              <tabler-icon icon="thumb-down" [size]="11" />{{ s.negativePct }}%
-            </span>
-          </td>
-        </tr>
-      }
-    </tbody>
-  </table>
-</section>
-
-<!-- Subcategory drawer -->
-@if (drawerOpen() && drawerSubcat(); as sub) {
-  <div class="drawer-backdrop" (click)="closeDrawer()" (keydown.escape)="closeDrawer()"></div>
-  <aside
-    class="drawer"
-    role="dialog"
-    [class.is-expanded]="drawerExpanded()"
-    [class.is-resizing]="isResizing()"
-    [style.width.px]="drawerExpanded() ? null : drawerWidth()"
-    [attr.aria-label]="sub.name"
-  >
-    <div
-      class="drawer-resizer"
-      (mousedown)="onResizeStart($event)"
-      aria-label="Resize drawer"
-      role="separator"
-    >
-      <span class="resizer-grip"></span>
-    </div>
-    <header class="drawer-head">
-      <h2 class="drawer-title">{{ sub.name }}</h2>
-      <div class="drawer-head-actions">
-        <button type="button" aria-label="Download">
-          <tabler-icon icon="download" [size]="18" />
-        </button>
-        <button
-          type="button"
-          [attr.aria-label]="drawerExpanded() ? 'Collapse' : 'Expand'"
-          (click)="toggleDrawerExpand()"
-        >
-          <tabler-icon
-            [icon]="drawerExpanded() ? 'arrows-move' : 'maximize'"
-            [size]="18"
-          />
-        </button>
-        <button type="button" aria-label="Close" (click)="closeDrawer()">
-          <tabler-icon icon="x" [size]="18" />
-        </button>
-      </div>
-    </header>
-
-    <nav class="drawer-tabs">
-      <button
-        type="button"
-        [class.is-active]="drawerTab() === 'prompts'"
-        (click)="setDrawerTab('prompts')"
-      >Prompts List</button>
-      <button
-        type="button"
-        [class.is-active]="drawerTab() === 'chat'"
-        (click)="setDrawerTab('chat')"
-      >Chat</button>
-    </nav>
-
-    @if (drawerTab() === 'prompts') {
-      <section class="ai-summary">
-        <div class="ai-summary-inner">
-          <header class="ai-summary-head">
-            <tabler-icon icon="sparkles" [size]="14" />
-            <span>AI Summary</span>
-          </header>
-          <p>{{ aiSummary() }}</p>
+  <!-- Row 1: 4 KPI cards -->
+  <section class="kpi-grid kpi-grid--4 analysis-kpi-row">
+    <article class="kpi-card">
+      <h3 class="kpi-card-title">{{ c.primaryTitle }}</h3>
+      <div class="kpi-metrics">
+        <div class="kpi-metric">
+          <span class="kpi-metric-value">{{ c.primaryCount }}</span>
+          <span class="kpi-metric-delta">+{{ c.primaryDeltaPct }}%</span>
         </div>
-      </section>
+      </div>
+    </article>
 
-      <div class="drawer-table-wrap">
-        <table class="drawer-table">
+    <article class="kpi-card">
+      <h3 class="kpi-card-title">Total Received Feedback</h3>
+      <div class="kpi-metrics">
+        <div class="kpi-metric">
+          <span class="kpi-metric-value">{{ c.totalFeedback }}</span>
+        </div>
+      </div>
+      <div class="feedback-split">
+        <span class="feedback-split-item feedback-split-item--up">
+          <tabler-icon icon="thumb-up" [size]="16" />
+          <span class="feedback-split-pct">{{ c.positivePct }}%</span>
+          <span class="feedback-split-label">positive</span>
+        </span>
+        <span class="feedback-split-sep" aria-hidden="true">|</span>
+        <span class="feedback-split-item feedback-split-item--down">
+          <tabler-icon icon="thumb-down" [size]="16" />
+          <span class="feedback-split-pct">{{ c.negativePct }}%</span>
+          <span class="feedback-split-label">negative</span>
+        </span>
+      </div>
+    </article>
+
+    <article class="kpi-card">
+      <h3 class="kpi-card-title">{{ c.conversionTitle }}</h3>
+      <div class="kpi-metrics">
+        <div class="kpi-metric">
+          <span class="kpi-metric-value">{{ c.conversionPct }}%</span>
+          <span class="kpi-metric-delta">{{ c.conversionDeltaPct >= 0 ? '+' : '' }}{{ c.conversionDeltaPct }}% vs last month</span>
+        </div>
+      </div>
+      <p class="kpi-card-sub">{{ c.conversionCompare }}</p>
+    </article>
+
+    <article class="kpi-card">
+      <h3 class="kpi-card-title">{{ c.repeatTitle }}</h3>
+      <div class="kpi-metrics">
+        <div class="kpi-metric">
+          <span class="kpi-metric-value">{{ c.repeatPct }}%</span>
+          <span class="kpi-metric-delta">{{ c.repeatDeltaPct >= 0 ? '+' : '' }}{{ c.repeatDeltaPct }}% vs last month</span>
+        </div>
+      </div>
+    </article>
+  </section>
+
+  <!-- Row 2: Linked Collections + Agent Usage -->
+  <section class="analysis-pair-row">
+    <article class="card">
+      <h3 class="card-title">Linked Collections</h3>
+      <table class="contrib-table">
+        <thead>
+          <tr>
+            <th>
+              <span class="th-cell">
+                Collection
+                <tabler-icon class="th-sort" icon="arrow-down" [size]="12" />
+              </span>
+            </th>
+            <th class="num-col">
+              <span class="th-cell">
+                Contribution Rate
+                <tabler-icon class="th-sort" icon="arrow-down" [size]="12" />
+              </span>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (col of c.collections; track col.name) {
+            <tr>
+              <td>
+                <a class="link-cell"
+                   [routerLink]="['/assets/collection', slugFor(col.name)]"
+                   [queryParams]="outboundRegionParams()">{{ col.name }}</a>
+              </td>
+              <td class="num-col">
+                <a class="link-cell"
+                   [routerLink]="['/assets/collection', slugFor(col.name)]"
+                   [queryParams]="outboundRegionParams()">{{ col.contributionPct }}%</a>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </article>
+
+    <article class="card">
+      <h3 class="card-title">Agent Usage</h3>
+      <table class="contrib-table">
+        <thead>
+          <tr>
+            <th>
+              <span class="th-cell">
+                Agent Name
+                <tabler-icon class="th-sort" icon="arrow-down" [size]="12" />
+              </span>
+            </th>
+            <th class="num-col">
+              <span class="th-cell">
+                Usage Share
+                <tabler-icon class="th-sort" icon="arrow-down" [size]="12" />
+              </span>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (a of c.agents; track a.name) {
+            <tr>
+              <td>
+                <a class="link-cell"
+                   [routerLink]="['/assets/agent', slugFor(a.name)]"
+                   [queryParams]="outboundRegionParams()">{{ a.name }}</a>
+              </td>
+              <td class="num-col">
+                <a class="link-cell"
+                   [routerLink]="['/assets/agent', slugFor(a.name)]"
+                   [queryParams]="outboundRegionParams()">{{ a.usagePct }}%</a>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </article>
+  </section>
+
+  <!-- Row 3: Top Negative Feedback Drivers + Global Demand -->
+  <section class="analysis-pair-row">
+    <article class="card">
+      <h3 class="card-title">Top Negative Feedback Drivers</h3>
+      <ul class="driver-list">
+        @for (d of c.negativeDrivers; track d.title) {
+          <li class="driver-item">
+            <div class="driver-head">
+              <span class="driver-title">{{ d.title }}</span>
+              <span class="driver-share">{{ d.sharePct }}%</span>
+            </div>
+            <div class="driver-bar">
+              <span class="driver-bar-fill" [style.width.%]="d.sharePct"></span>
+            </div>
+            <span class="driver-sub">{{ d.reports }} reports · {{ d.sharePct }}% of all negatives</span>
+          </li>
+        }
+      </ul>
+    </article>
+
+    <article class="card global-demand-card">
+      <header class="card-head">
+        <h3 class="card-title">Global Demand</h3>
+        <div class="map-mode-toggle" role="group" aria-label="Map mode">
+          <button
+            type="button"
+            class="map-mode-btn"
+            [class.is-active]="mapMode() === 'region'"
+            (click)="setMapMode('region')"
+          >
+            <tabler-icon icon="affiliate" [size]="13" />
+            By Region
+          </button>
+          <button
+            type="button"
+            class="map-mode-btn"
+            [class.is-active]="mapMode() === 'country'"
+            (click)="setMapMode('country')"
+          >
+            <tabler-icon icon="flag" [size]="13" />
+            By Country
+          </button>
+        </div>
+      </header>
+
+      <div
+        #mapHost
+        class="demand-map"
+        [class.mode-region]="mapMode() === 'region'"
+        [class.is-panning]="isPanning()"
+        role="img"
+        aria-label="Click a country or region to see query counts. Drag to pan, scroll to zoom."
+        (wheel)="onMapWheel($event)"
+        (mousedown)="onPanStart($event)"
+        (mousemove)="onPanMove($event)"
+        (mouseup)="onPanEnd()"
+        (mouseleave)="onPanEnd()"
+        (click)="onMapClick($event)"
+      >
+        <div
+          class="demand-map-pan"
+          [style.transform]="mapTransform()"
+          [innerHTML]="mapSvg()"
+        ></div>
+
+        <div class="demand-map-zoom" aria-label="Zoom controls">
+          <button type="button" (click)="zoomIn()"    aria-label="Zoom in">
+            <tabler-icon icon="plus" [size]="14" />
+          </button>
+          <button type="button" (click)="zoomOut()"   aria-label="Zoom out">
+            <tabler-icon icon="minus" [size]="14" />
+          </button>
+          <button type="button" (click)="resetView()" aria-label="Reset view">
+            <tabler-icon icon="refresh" [size]="14" />
+          </button>
+        </div>
+
+        @if (mapSelection(); as sel) {
+          <div class="demand-map-tooltip">
+            <div class="demand-map-tooltip-name">{{ sel.name }}</div>
+            <div class="demand-map-tooltip-value">{{ sel.queries }} queries</div>
+          </div>
+        }
+      </div>
+    </article>
+  </section>
+
+  <!-- Row 4: Prompt Subcategories table -->
+  <section class="analysis-subcat-section">
+    <article class="card">
+      <h3 class="card-title">Prompt Subcategories</h3>
+      <div class="subcat-table-wrap">
+        <table class="subcat-table">
           <thead>
             <tr>
-              <th class="col-query">User Query</th>
-              <th class="col-num">No. of Queries</th>
-              <th class="col-feedback">Feedback</th>
-              <th class="col-comment">Feedback Comments</th>
-              <th class="col-friction">
-                <span class="friction-th">
-                  <tabler-icon icon="sparkles" [size]="12" />Friction Type
+              <th>
+                <span class="th-cell">
+                  Name
+                  <tabler-icon class="th-sort" icon="arrow-down" [size]="12" />
                 </span>
               </th>
-              <th class="col-actions">Actions</th>
+              <th class="num-col">
+                <span class="th-cell">
+                  {{ c.subcatCountLabel }}
+                  <tabler-icon class="th-sort" icon="arrow-down" [size]="12" />
+                </span>
+              </th>
+              <th class="num-col">
+                <span class="th-cell">
+                  {{ c.subcatRepeatLabel }}
+                  <tabler-icon class="th-sort" icon="arrow-down" [size]="12" />
+                </span>
+              </th>
+              <th class="num-col">
+                <span class="th-cell">
+                  {{ c.subcatConversionLabel }}
+                  <tabler-icon class="th-sort" icon="arrow-down" [size]="12" />
+                </span>
+              </th>
+              <th class="num-col">
+                <span class="th-cell">
+                  Negative Feedback
+                  <tabler-icon class="th-sort" icon="arrow-down" [size]="12" />
+                </span>
+              </th>
+              <th class="num-col">
+                <span class="th-cell">
+                  Positive Feedback
+                  <tabler-icon class="th-sort" icon="arrow-down" [size]="12" />
+                </span>
+              </th>
             </tr>
           </thead>
           <tbody>
-            @for (p of mockPrompts; track p.query) {
+            @for (s of c.subcategories; track s.name) {
               <tr>
-                <td class="col-query">
-                  <span class="query-text">{{ p.query }}</span>
-                </td>
-                <td class="col-num">{{ p.numQueries }}</td>
-                <td class="col-feedback">
-                  <span class="thumb-up-mini">
-                    <tabler-icon icon="thumb-up" [size]="13" />{{ p.feedbackUp }}
-                  </span>
-                  <span class="thumb-down-mini">
-                    <tabler-icon icon="thumb-down" [size]="13" />{{ p.feedbackDown }}
+                <td><a class="link-cell" (click)="openSubcatDrawer(s)">{{ s.name }}</a></td>
+                <td class="num-col"><span class="link-cell">{{ s.queries }}</span></td>
+                <td class="num-col"><span class="link-cell">{{ s.repeatRate }}%</span></td>
+                <td class="num-col"><span class="link-cell">{{ s.retrievalSuccess }}%</span></td>
+                <td class="num-col">
+                  <span class="subcat-feedback subcat-feedback--neg">
+                    <tabler-icon icon="thumb-down" [size]="14" />
+                    {{ s.negativePct }}%
                   </span>
                 </td>
-                <td class="col-comment">
-                  <span class="comment-text">{{ p.feedbackComment }}</span>
-                </td>
-                <td class="col-friction">
-                  @if (p.frictionType) {
-                    <span class="friction-pill" [attr.data-friction]="p.frictionType">
-                      <span class="friction-dot"></span>{{ frictionLabel(p.frictionType) }}
-                    </span>
-                  }
-                </td>
-                <td class="col-actions">
-                  <a class="remediate-link">Remediate</a>
+                <td class="num-col">
+                  <span class="subcat-feedback subcat-feedback--pos">
+                    <tabler-icon icon="thumb-up" [size]="14" />
+                    {{ s.positivePct }}%
+                  </span>
                 </td>
               </tr>
             }
           </tbody>
         </table>
       </div>
-    } @else {
-      <div class="drawer-chat-placeholder">
-        <tabler-icon icon="message-circle-2" [size]="32" />
-        <p>Chat with these prompts — coming soon.</p>
-      </div>
-    }
-
-    <footer class="drawer-foot">
-      <button class="generate-btn" type="button">
-        <tabler-icon icon="file-download" [size]="18" />
-        Generate Report
-      </button>
-    </footer>
-  </aside>
+    </article>
+  </section>
 }
+
+<!-- ============ Subcategory drawer ============ -->
+@if (subDrawerOpen()) {
+  <div class="sub-backdrop" (click)="closeSubcatDrawer()"></div>
+}
+
+<aside
+  class="sub-drawer"
+  [class.is-open]="subDrawerOpen()"
+  [attr.aria-hidden]="!subDrawerOpen()"
+  aria-label="Subcategory detail"
+>
+  @if (subDrawerData(); as d) {
+    <header class="sub-head">
+      <h2 class="sub-title">{{ d.name }}</h2>
+      <button class="sub-close" type="button" (click)="closeSubcatDrawer()" aria-label="Close">
+        <tabler-icon icon="x" [size]="18" />
+      </button>
+    </header>
+
+    <div class="sub-body">
+      <!-- AI Insights -->
+      <section class="sub-insight-card">
+        <header class="sub-insight-head">
+          <span class="sub-insight-icon">
+            <tabler-icon icon="sparkles" [size]="16" />
+          </span>
+          <h3 class="sub-insight-title">AI Insights</h3>
+        </header>
+
+        <p class="sub-insight-text" [innerHTML]="subDrawerAiInsight()"></p>
+
+        <div class="sub-insight-grid">
+          <div class="sub-insight-block">
+            <h4 class="sub-insight-block-title">Top VPUs by Engagement</h4>
+            <ul class="sub-insight-list">
+              @for (v of d.topVpus; track v) {
+                <li>{{ v }}</li>
+              }
+            </ul>
+          </div>
+
+          <div class="sub-insight-block">
+            <h4 class="sub-insight-block-title">Top Collections</h4>
+            <ul class="sub-insight-list">
+              @for (c of d.topCollections; track c) {
+                <li><a class="link-cell" [routerLink]="['/assets/collection', slugFor(c)]">{{ c }}</a></li>
+              }
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- Prompts in the category -->
+      <section class="sub-section">
+        <h3 class="sub-section-title">Types of Prompts in the Category</h3>
+        <div class="sub-table-wrap">
+          <table class="sub-table">
+            <thead>
+              <tr>
+                <th>
+                  <span class="th-cell">
+                    Name
+                    <tabler-icon class="th-sort" icon="arrow-down" [size]="12" />
+                  </span>
+                </th>
+                <th class="num-col">
+                  <span class="th-cell">
+                    No. of Queries
+                    <tabler-icon class="th-sort" icon="arrow-down" [size]="12" />
+                  </span>
+                </th>
+                <th class="num-col">
+                  <span class="th-cell">
+                    Negative Feedback
+                    <tabler-icon class="th-sort" icon="arrow-down" [size]="12" />
+                  </span>
+                </th>
+                <th class="num-col">
+                  <span class="th-cell">
+                    Positive Feedback
+                    <tabler-icon class="th-sort" icon="arrow-down" [size]="12" />
+                  </span>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (p of d.prompts; track p.query) {
+                <tr>
+                  <td><a class="link-cell sub-prompt-query" href="#">{{ p.query }}</a></td>
+                  <td class="num-col"><span class="link-cell">{{ p.queries }}</span></td>
+                  <td class="num-col">
+                    <span class="subcat-feedback subcat-feedback--neg">
+                      <tabler-icon icon="thumb-down" [size]="14" />
+                      {{ p.negativePct }}%
+                    </span>
+                  </td>
+                  <td class="num-col">
+                    <span class="subcat-feedback subcat-feedback--pos">
+                      <tabler-icon icon="thumb-up" [size]="14" />
+                      {{ p.positivePct }}%
+                    </span>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  }
+</aside>

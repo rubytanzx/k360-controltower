@@ -17,16 +17,221 @@
   --danger: #ef4444;
   --purple: #a855f7;
   --pink: #ec4899;
+
+  /* =========================================================================
+     Lift Design System — Primitive Colors (Figma v8.1, In development)
+     Transcribed verbatim from the Lift Primitive spec. Placeholder values
+     (#169AF3) reflect ramps not yet finalized in Figma.
+     ========================================================================= */
+
+  /* ---------- Primary Color ---------- */
+  --color-primary-10:  #F0F7FE;
+  --color-primary-20:  #E9F3FD;
+  --color-primary-30:  #D3E8FD;
+  --color-primary-40:  #BFDEFC;
+  --color-primary-50:  #449DF7;
+  --color-primary-60:  #086ED3;
+  --color-primary-70:  #085EB5;
+  --color-primary-80:  #004C99;
+  --color-primary-90:  #002E5C;
+  --color-primary-100: #001F3D;
+  --color-primary-110: #001F3D;
+  --color-primary-120: #001F3D;
+
+  /* ---------- Neutrals / Solids ---------- */
+  --color-neutral-solid-05: #F5F7F9;
+  --color-neutral-solid-10: #E7EDF3;
+  --color-neutral-solid-15: #DAE3EB;
+  --color-neutral-solid-20: #D4DEE8;
+  --color-neutral-solid-30: #BDCCDB;
+  --color-neutral-solid-40: #8A9DB1;
+  --color-neutral-solid-50: #586E84;
+  --color-neutral-solid-60: #4B5E71;
+  --color-neutral-solid-70: #3D4C5C;
+  --color-neutral-solid-80: #252E37;
+  --color-neutral-solid-90: #181F25;
+  --color-neutral-solid-95: #181F25;
+
+  /* ---------- Neutrals / Alpha ---------- */
+  --color-neutral-alpha-05: #F5F7F9;
+  --color-neutral-alpha-10: #EFF3F7;
+  --color-neutral-alpha-20: #E1E8EF;
+  --color-neutral-alpha-30: #A3DAFF;
+  --color-neutral-alpha-40: #499DF2;
+  --color-neutral-alpha-50: #499DF2;
+  --color-neutral-alpha-60: #0863BF;
+  --color-neutral-alpha-70: #0F5499;
+  --color-neutral-alpha-80: #003870;
+  --color-neutral-alpha-90: #052E57;
+
+  /* ---------- Grays ---------- */
+  --color-white:        #000000; /* spec label: WHITE / 100 */
+  --color-black:        #FFFFFF; /* spec label: BLACK / 100 */
+  --color-transparent:  rgba(0, 0, 0, 0); /* spec label: TRANSPARENT / 0 */
+
+  /* Gray / White ramp */
+  --color-gray-white-08a: #F5F7F9;
+  --color-gray-white-16a: #EFF3F7;
+  --color-gray-white-24a: #E1E8EF;
+  --color-gray-white-48a: #A3DAFF;
+  --color-gray-white-60a: #499DF2;
+
+  /* Gray / Black ramp */
+  --color-gray-black-16a: #499DF2;
+  --color-gray-black-24a: #499DF2;
+  --color-gray-black-48a: #0863BF;
+  --color-gray-black-60a: #0F5499;
+  --color-gray-black-75a: #003870;
+  --color-gray-black-90a: #052E57;
+
+  /* ---------- Semantic / Interactive ---------- */
+  /* Red / Negative */
+  --color-red-10: #F6FCFF;
+  --color-red-20: #E9F7FD;
+  --color-red-30: #CDE7F9;
+  --color-red-40: #A3DAFF;
+  --color-red-50: #169AF3; /* BASE */
+  --color-red-60: #0071BC;
+  --color-red-70: #00538A;
+  --color-red-80: #004370;
+  --color-red-90: #053657;
+
+  /* Green / Positive (placeholder ramp in spec) */
+  --color-green-10: #169AF3;
+  --color-green-20: #169AF3;
+  --color-green-30: #169AF3;
+  --color-green-40: #169AF3;
+  --color-green-50: #169AF3; /* BASE */
+  --color-green-60: #169AF3;
+  --color-green-70: #169AF3;
+  --color-green-80: #169AF3;
+  --color-green-90: #169AF3;
+
+  /* Yellow / Warning (placeholder ramp in spec) */
+  --color-yellow-10: #169AF3;
+  --color-yellow-20: #169AF3;
+  --color-yellow-30: #169AF3;
+  --color-yellow-40: #169AF3;
+  --color-yellow-50: #169AF3; /* BASE */
+  --color-yellow-60: #169AF3;
+  --color-yellow-70: #169AF3;
+  --color-yellow-80: #169AF3;
+  --color-yellow-90: #169AF3;
+
+  /* Purple / Suggestional (placeholder ramp in spec) */
+  --color-purple-10: #169AF3;
+  --color-purple-20: #169AF3;
+  --color-purple-30: #169AF3;
+  --color-purple-40: #169AF3;
+  --color-purple-50: #169AF3; /* BASE */
+  --color-purple-60: #169AF3;
+  --color-purple-70: #169AF3;
+  --color-purple-80: #169AF3;
+  --color-purple-90: #169AF3;
+
+  /* ---------- Accents (placeholder ramps in spec) ---------- */
+  /* Orange */
+  --color-orange-10: #169AF3;
+  --color-orange-20: #169AF3;
+  --color-orange-30: #169AF3;
+  --color-orange-40: #169AF3;
+  --color-orange-50: #169AF3; /* BASE */
+  --color-orange-60: #169AF3;
+  --color-orange-70: #169AF3;
+  --color-orange-80: #169AF3;
+  --color-orange-90: #169AF3;
+
+  /* Teal */
+  --color-teal-10: #169AF3;
+  --color-teal-20: #169AF3;
+  --color-teal-30: #169AF3;
+  --color-teal-40: #169AF3;
+  --color-teal-50: #169AF3; /* BASE */
+  --color-teal-60: #169AF3;
+  --color-teal-70: #169AF3;
+  --color-teal-80: #169AF3;
+  --color-teal-90: #169AF3;
+
+  /* Cyan */
+  --color-cyan-10: #169AF3;
+  --color-cyan-20: #169AF3;
+  --color-cyan-30: #169AF3;
+  --color-cyan-40: #169AF3;
+  --color-cyan-50: #169AF3; /* BASE */
+  --color-cyan-60: #169AF3;
+  --color-cyan-70: #169AF3;
+  --color-cyan-80: #169AF3;
+  --color-cyan-90: #169AF3;
+
+  /* Magenta */
+  --color-magenta-10: #169AF3;
+  --color-magenta-20: #169AF3;
+  --color-magenta-30: #169AF3;
+  --color-magenta-40: #169AF3;
+  --color-magenta-50: #169AF3; /* BASE */
+  --color-magenta-60: #169AF3;
+  --color-magenta-70: #169AF3;
+  --color-magenta-80: #169AF3;
+  --color-magenta-90: #169AF3;
+
+  /* ===== Typography — Lift Design System ===== */
+  --font-display: 'Poppins', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-body: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  /* Headings (Poppins) */
+  --fs-d: 72px;
+  --fs-h1: 48px;
+  --fs-h2: 40px;
+  --fs-h3: 32px;
+  --fs-h4: 24px;
+
+  /* Labels (Poppins) */
+  --fs-label-lg: 20px;
+  --fs-label-md: 18px;
+  --fs-label-base: 16px;
+  --fs-label-sm: 14px;
+  --fs-label-xs: 12px;
+
+  /* Body / List (Inter) */
+  --fs-body-lg: 24px;
+  --fs-body-md: 20px;
+  --fs-body-base: 16px;
+  --fs-body-sm: 14px;
+  --fs-body-xs: 12px;
+
+  /* Blockquote (Poppins) */
+  --fs-quote-lg: 36px;
+  --fs-quote-base: 24px;
+
+  /* Line heights */
+  --lh-display: 1.1;
+  --lh-heading: 1.2;
+  --lh-label: 1.4;
+  --lh-body: 1.6;
+  --lh-quote: 1.35;
+
+  /* Weights */
+  --fw-light: 300;
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --fw-bold: 700;
+  --fw-heavy: 900;
 }
 
 * { box-sizing: border-box; }
 
 html, body {
   margin: 0;
-  background: var(--bg-app);
+  /* Match the .content shell so overscroll doesn't reveal the legacy
+     dark-theme bg-app token. */
+  background: #FAFBFC;
   color: var(--text);
-  font-family: 'Roboto', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-family: var(--font-body);
+  font-size: var(--fs-body-base);
+  line-height: var(--lh-body);
   -webkit-font-smoothing: antialiased;
+  overscroll-behavior: none;
 }
 
 body { min-height: 100vh; }
@@ -385,3 +590,188 @@ tabler-icon {
 .country-dropdown .dropdown-item .item-text {
   padding-left: 6px;
 }
+
+/* =========================================================================
+   Typography — Lift Design System
+   Headings, labels, blockquote → Poppins
+   Body, list                   → Inter
+   Default weight per group is the "primary" weight in the spec
+   (Bold for headings, Heavy for labels, Regular for body).
+   Add `--light` / `--bold` / `--medium` modifier for the alternate weight.
+   ========================================================================= */
+
+/* ---------- Headings (Poppins) ---------- */
+.t-d,
+.t-h1,
+.t-h2,
+.t-h3,
+.t-h4 {
+  font-family: var(--font-display);
+  font-weight: var(--fw-bold);
+  line-height: var(--lh-heading);
+  margin: 0;
+}
+
+.t-d  { font-size: var(--fs-d);  line-height: var(--lh-display); letter-spacing: -0.02em; }
+.t-h1 { font-size: var(--fs-h1); letter-spacing: -0.015em; }
+.t-h2 { font-size: var(--fs-h2); letter-spacing: -0.01em; }
+.t-h3 { font-size: var(--fs-h3); letter-spacing: -0.005em; }
+.t-h4 { font-size: var(--fs-h4); }
+
+.t-d--light,
+.t-h1--light,
+.t-h2--light,
+.t-h3--light,
+.t-h4--light { font-weight: var(--fw-light); }
+
+/* ---------- Labels (Poppins) ---------- */
+.t-label-lg,
+.t-label-md,
+.t-label-base,
+.t-label-sm,
+.t-label-xs {
+  font-family: var(--font-display);
+  font-weight: var(--fw-heavy);
+  line-height: var(--lh-label);
+}
+
+.t-label-lg   { font-size: var(--fs-label-lg); }
+.t-label-md   { font-size: var(--fs-label-md); }
+.t-label-base { font-size: var(--fs-label-base); }
+.t-label-sm   { font-size: var(--fs-label-sm); }
+.t-label-xs   { font-size: var(--fs-label-xs); }
+
+.t-label-lg--light,
+.t-label-md--light,
+.t-label-base--light,
+.t-label-sm--light,
+.t-label-xs--light { font-weight: var(--fw-light); }
+
+/* ---------- Body / Paragraph (Inter) ---------- */
+.t-body-lg,
+.t-body-md,
+.t-body-base,
+.t-body-sm,
+.t-body-xs {
+  font-family: var(--font-body);
+  font-weight: var(--fw-regular);
+  line-height: var(--lh-body);
+}
+
+.t-body-lg   { font-size: var(--fs-body-lg); }
+.t-body-md   { font-size: var(--fs-body-md); }
+.t-body-base { font-size: var(--fs-body-base); }
+.t-body-sm   { font-size: var(--fs-body-sm); }
+.t-body-xs   { font-size: var(--fs-body-xs); }
+
+.t-body-lg--bold,
+.t-body-md--bold,
+.t-body-base--bold,
+.t-body-sm--bold,
+.t-body-xs--bold { font-weight: var(--fw-bold); }
+
+/* Small body has an additional medium weight in the spec */
+.t-body-sm--medium { font-weight: var(--fw-medium); }
+
+/* ---------- List (Inter) ---------- */
+.t-list-lg,
+.t-list-base,
+.t-list-sm {
+  font-family: var(--font-body);
+  font-weight: var(--fw-regular);
+  line-height: var(--lh-body);
+  padding-left: 1.25em;
+  margin: 0;
+}
+
+.t-list-lg   { font-size: var(--fs-body-lg); }
+.t-list-base { font-size: var(--fs-body-base); }
+.t-list-sm   { font-size: var(--fs-body-sm); }
+
+/* ---------- Blockquote (Poppins) ---------- */
+.t-quote-lg,
+.t-quote-base {
+  font-family: var(--font-display);
+  font-weight: var(--fw-regular);
+  line-height: var(--lh-quote);
+  margin: 0;
+}
+
+.t-quote-lg   { font-size: var(--fs-quote-lg); }
+.t-quote-base { font-size: var(--fs-quote-base); }
+
+/* =========================================================================
+   KPI card (shared across pages — Dashboard, Assets Overview, etc.)
+   ========================================================================= */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.kpi-grid--4 { grid-template-columns: repeat(4, 1fr); }
+
+.kpi-card {
+  background: #FFFFFF;
+  border: 1px solid var(--color-neutral-solid-10);
+  border-radius: 14px;
+  padding: 22px 24px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-height: 148px;
+}
+
+.kpi-card-title {
+  margin: 0;
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 14px;
+  color: var(--color-neutral-solid-60);
+}
+
+.kpi-metrics {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.kpi-metric {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.kpi-metric-value {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--fs-h4);
+  line-height: 1.1;
+  letter-spacing: -0.015em;
+  color: var(--color-neutral-solid-90);
+}
+
+.kpi-metric-label {
+  font-size: 13.5px;
+  color: var(--color-neutral-solid-60);
+}
+
+.kpi-metric-delta {
+  font-size: 13.5px;
+  font-weight: 500;
+  color: #34D399;
+}
+
+.kpi-metric-sep {
+  font-size: 22px;
+  color: var(--color-neutral-solid-15);
+  font-weight: 300;
+}
+
+.kpi-card-sub {
+  margin: auto 0 0;
+  font-size: 13px;
+  color: var(--color-neutral-solid-50);
+}
+
