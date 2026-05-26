@@ -8,7 +8,6 @@
     <h1 class="cd-title">{{ name() }}</h1>
     <ul class="cd-meta">
       <li><span class="cd-meta-label">Type:</span> {{ meta.type }}</li>
-      <li><span class="cd-meta-label">Owner:</span> {{ meta.owner }}</li>
       <li><span class="cd-meta-label">Verticals:</span> {{ meta.verticals }}</li>
       <li><span class="cd-meta-label">Sectors:</span> {{ meta.sectors }}</li>
       <li><span class="cd-meta-label">Updated:</span> {{ meta.updated }}</li>
@@ -54,8 +53,8 @@
   }
 </section>
 
-<!-- Row 1: Top Prompt Categories | Knowledge Coverage -->
-<section class="cd-panels cd-panels--two">
+<!-- Row 1: Top Prompt Categories | Knowledge Coverage | Contribution -->
+<section class="cd-panels cd-panels--three">
   <!-- Top Prompt Categories with tabs and treemap -->
   <article class="cd-panel">
     <h3 class="cd-panel-title">Top Prompt Categories</h3>
@@ -119,6 +118,55 @@
         <li><span class="donut-dot" style="background:#34D399"></span>{{ coverage.cited }}% Cited</li>
         <li><span class="donut-dot" style="background:#0EA5E9"></span>{{ coverage.referenced }}% Referenced</li>
         <li><span class="donut-dot" style="background:#F59E0B"></span>{{ coverage.notRetrieved }}% Not Retrieved</li>
+      </ul>
+    </div>
+  </article>
+
+  <!-- Contribution pie — % of this collection's resources by VPU or Country -->
+  <article class="cd-panel">
+    <header class="contribution-head">
+      <h3 class="cd-panel-title">Contribution</h3>
+      <div class="contribution-tabs" role="tablist" aria-label="Contribution mode">
+        <button
+          type="button"
+          class="contribution-tab"
+          role="tab"
+          [class.is-active]="contributionMode() === 'vpu'"
+          [attr.aria-selected]="contributionMode() === 'vpu'"
+          (click)="setContributionMode('vpu')"
+        >By VPU</button>
+        <button
+          type="button"
+          class="contribution-tab"
+          role="tab"
+          [class.is-active]="contributionMode() === 'country'"
+          [attr.aria-selected]="contributionMode() === 'country'"
+          (click)="setContributionMode('country')"
+        >By Country</button>
+      </div>
+    </header>
+
+    <div class="pie-wrap">
+      <svg
+        class="pie-svg"
+        viewBox="0 0 100 100"
+        [attr.aria-label]="'Resource contribution pie by ' + contributionMode()"
+      >
+        @for (s of contributionSlices(); track s.label) {
+          <path [attr.d]="s.pathD" [attr.fill]="s.color" stroke="#FFFFFF" stroke-width="0.6" />
+        }
+      </svg>
+      <ul class="pie-legend">
+        @for (s of contributionSlices(); track s.label) {
+          <li
+            [class.has-tooltip]="s.fullName !== s.label"
+            [attr.data-tooltip]="s.fullName !== s.label ? s.fullName : null"
+          >
+            <span class="pie-dot" [style.background]="s.color"></span>
+            <span class="pie-legend-label">{{ s.label }}</span>
+            <span class="pie-legend-pct">{{ s.pct }}%</span>
+          </li>
+        }
       </ul>
     </div>
   </article>
@@ -201,6 +249,11 @@
           </span>
           <div class="rd-resource-text">
             <div class="rd-resource-name">{{ r.name }}</div>
+            <ul class="rd-resource-meta">
+              <li><span class="rd-resource-meta-label">VPU:</span> {{ r.vpu }}</li>
+              <li><span class="rd-resource-meta-label">Country:</span> {{ r.country }}</li>
+              <li><span class="rd-resource-meta-label">Updated:</span> {{ r.uploadedDisplay }}</li>
+            </ul>
           </div>
         </div>
 
@@ -221,7 +274,7 @@
           </div>
         </div>
 
-        <h3 class="rd-section-title">User Prompts</h3>
+        <h3 class="rd-section-title">User Prompt Types</h3>
 
         <table class="rd-prompts-table">
           <thead>
@@ -282,7 +335,7 @@
       </div>
     }
 
-    <!-- VIEW 2: single prompt detail (back arrow returns to view 1) -->
+    <!-- VIEW 2: aggregated feedback for this prompt type (back arrow returns to view 1) -->
     @if (drawerView() === 'prompt' && drawerPrompt(); as p) {
       <header class="rd-head rd-head--prompt">
         <button class="rd-back" type="button" (click)="backToResource()" aria-label="Back">
@@ -292,61 +345,59 @@
       </header>
 
       <div class="rd-body">
-        <div class="rd-resource-row">
-          <span class="rd-file-icon">
-            <tabler-icon icon="file-text" [size]="22" />
-            <span class="rd-file-tag">PDF</span>
-          </span>
-          <div class="rd-resource-text">
-            <div class="rd-resource-name">{{ r.name }}</div>
+        <!-- Aggregate summary: total feedback + positive + negative -->
+        <div class="rd-fb-summary">
+          <div class="rd-fb-summary-item">
+            <div class="rd-fb-summary-value">{{ p.positiveCount + p.negativeCount }}</div>
+            <div class="rd-fb-summary-label">Total Feedback</div>
           </div>
-        </div>
-
-        <div class="rd-feedback-meta">
-          <div>
-            <div class="rd-meta-label">Feedback User</div>
-            <div class="rd-meta-value">{{ p.feedbackUser }}</div>
+          <div class="rd-fb-summary-item">
+            <div class="rd-fb-summary-value rd-fb-summary-value--pos">{{ p.positiveCount }}</div>
+            <div class="rd-fb-summary-label rd-fb-summary-label--pos">
+              <tabler-icon icon="thumb-up" [size]="16" /> Positive Feedback
+            </div>
           </div>
-          <div>
-            <div class="rd-meta-label">Feedback Date</div>
-            <div class="rd-meta-value">
-              <tabler-icon icon="calendar-month" [size]="14" /> {{ p.feedbackDate }}
+          <div class="rd-fb-summary-item">
+            <div class="rd-fb-summary-value rd-fb-summary-value--neg">{{ p.negativeCount }}</div>
+            <div class="rd-fb-summary-label rd-fb-summary-label--neg">
+              <tabler-icon icon="thumb-down" [size]="16" /> Negative Feedback
             </div>
           </div>
         </div>
 
-        <div class="rd-prompt-block">
-          <div class="rd-prompt-head">
-            <span class="rd-prompt-head-left">
-              <tabler-icon icon="user" [size]="18" />
-              <span>User Prompt</span>
-            </span>
-            <button type="button" class="rd-copy" (click)="copyPrompt()">
-              <tabler-icon icon="copy" [size]="14" /> Copy Prompt
-            </button>
-          </div>
-          <div class="rd-prompt-body">{{ p.promptBody }}</div>
-        </div>
+        <!-- Negative feedback breakdown by reason -->
+        <section class="rd-neg-section">
+          <h3 class="rd-neg-title">Negative Feedback Reasons</h3>
+          <ul class="rd-neg-list">
+            @for (rb of p.negativeBreakdown; track rb.label; let i = $index) {
+              <li class="rd-neg-item">
+                <div class="rd-neg-row">
+                  <span class="rd-neg-index">{{ i + 1 }}</span>
+                  <span class="rd-neg-label">{{ rb.label }}</span>
+                  <span class="rd-neg-count">{{ rb.count }}</span>
+                </div>
+                <div class="rd-neg-bar">
+                  <div
+                    class="rd-neg-bar-fill"
+                    [style.width.%]="p.negativeCount > 0 ? (rb.count / p.negativeCount) * 100 : 0"
+                  ></div>
+                </div>
+              </li>
+            }
+          </ul>
+        </section>
 
-        <div class="rd-fb-card rd-fb-card--negative">
-          <span class="rd-fb-card-icon">
-            <tabler-icon icon="thumb-down" [size]="18" />
-          </span>
-          <div class="rd-fb-card-content">
-            <div class="rd-fb-card-title">Negative Feedback</div>
-            <div class="rd-fb-card-reason">{{ p.negativeReason }}</div>
-            <span class="rd-fb-tag">{{ p.negativeTag }}</span>
-          </div>
-        </div>
-
-        <div class="rd-fb-card rd-fb-card--reco">
-          <div class="rd-fb-card-content">
-            <div class="rd-fb-card-title rd-fb-card-title--reco">
-              <tabler-icon icon="sparkles" [size]="16" /> Recommendation
-            </div>
-            <div class="rd-fb-card-reason">{{ p.recommendation }}</div>
-          </div>
-        </div>
+        <!-- Free-text comments captured when users picked "Other" -->
+        @if (p.otherComments.length) {
+          <section class="rd-neg-section">
+            <h3 class="rd-neg-title">Additional Comments from Other</h3>
+            <ul class="rd-neg-comments">
+              @for (c of p.otherComments; track c) {
+                <li>{{ c }}</li>
+              }
+            </ul>
+          </section>
+        }
       </div>
     }
   }

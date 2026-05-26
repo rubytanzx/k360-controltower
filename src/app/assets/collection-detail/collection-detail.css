@@ -99,6 +99,9 @@
   gap: 16px;
   margin-top: 16px;
 }
+.cd-panels--three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
 
 .cd-panel {
   background: #FFFFFF;
@@ -235,6 +238,117 @@
 }
 .donut-dot {
   width: 10px; height: 10px; border-radius: 50%;
+}
+
+/* ----- Contribution pie (third panel) ----- */
+.contribution-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.contribution-tabs {
+  display: inline-flex;
+  gap: 4px;
+  background: var(--color-neutral-solid-05);
+  border-radius: 999px;
+  padding: 3px;
+  flex: 0 0 auto;
+}
+.contribution-tab {
+  background: transparent;
+  border: none;
+  border-radius: 999px;
+  padding: 5px 12px;
+  font: inherit;
+  font-size: 12.5px;
+  color: var(--color-neutral-solid-60);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.contribution-tab:hover { color: var(--color-neutral-solid-90); }
+.contribution-tab.is-active {
+  background: #FFFFFF;
+  color: var(--color-primary-80);
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+}
+
+.pie-wrap {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex: 1;
+  min-height: 0;
+}
+.pie-svg {
+  width: 200px;
+  height: 200px;
+  flex: 0 0 200px;
+}
+.pie-legend {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  color: var(--color-neutral-solid-80);
+}
+.pie-legend li {
+  display: grid;
+  grid-template-columns: 12px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  position: relative;
+}
+.pie-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+}
+.pie-legend li.has-tooltip { cursor: help; }
+
+/* CSS-only tooltip — shows the full VPU unit name on hover.
+   `data-tooltip` is only set when the full name differs from the label, so
+   the country-mode legend (which already shows full names) stays quiet. */
+.pie-legend li.has-tooltip::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: 18px;
+  bottom: calc(100% + 6px);
+  z-index: 10;
+  background: var(--color-neutral-solid-90);
+  color: #FFFFFF;
+  font-size: 11.5px;
+  font-weight: 500;
+  white-space: nowrap;
+  padding: 6px 10px;
+  border-radius: 6px;
+  box-shadow: 0 4px 10px rgba(15, 23, 42, 0.18);
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(2px);
+  transition: opacity 0.12s ease, transform 0.12s ease;
+}
+.pie-legend li.has-tooltip:hover::after {
+  opacity: 1;
+  transform: translateY(0);
+}
+.pie-legend-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pie-legend-pct {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--color-neutral-solid-90);
+  font-variant-numeric: tabular-nums;
 }
 
 /* ============= Resources table ============= */
@@ -427,6 +541,22 @@
   color: var(--color-neutral-solid-60);
   margin-top: 2px;
 }
+/* Resource provenance meta (VPU · Country · Updated) below the file name */
+.rd-resource-meta {
+  list-style: none;
+  padding: 0;
+  margin: 6px 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  font-size: 12.5px;
+  color: var(--color-neutral-solid-80);
+}
+.rd-resource-meta-label {
+  color: var(--color-neutral-solid-90);
+  font-weight: 600;
+  margin-right: 4px;
+}
 
 /* Stat cards row (Source Occurrence / Reliability Score) */
 .rd-stats {
@@ -506,124 +636,125 @@
 .rd-fb--negative { color: #DC2626; }
 .rd-fb--positive { color: #15803D; }
 
-/* Prompt detail view */
-.rd-feedback-meta {
+/* Prompt-type detail view — aggregated feedback. Same visual language as the
+   analysis-page subcategory drawer so the two views stay in lockstep. */
+.rd-fb-summary {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 24px;
-  padding: 14px 16px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+.rd-fb-summary-item {
+  border: 1px solid var(--color-neutral-solid-10);
   border-radius: 12px;
-  background: var(--color-neutral-solid-05);
+  padding: 16px 18px;
+  background: #FFFFFF;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
-.rd-meta-label {
-  font-size: 12.5px;
-  color: var(--color-neutral-solid-60);
-  margin-bottom: 4px;
+.rd-fb-summary-value {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 28px;
+  line-height: 1.1;
+  color: var(--color-neutral-solid-90);
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
 }
-.rd-meta-value {
+.rd-fb-summary-value--pos { color: #15803D; }
+.rd-fb-summary-value--neg { color: #DC2626; }
+.rd-fb-summary-label {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 14px;
+  font-size: 13px;
+  color: var(--color-neutral-solid-70);
+}
+.rd-fb-summary-label--pos tabler-icon { color: #15803D; }
+.rd-fb-summary-label--neg tabler-icon { color: #DC2626; }
+
+.rd-neg-section { display: flex; flex-direction: column; gap: 12px; }
+.rd-neg-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 16px;
   color: var(--color-neutral-solid-90);
 }
-.rd-meta-value tabler-icon { color: var(--color-neutral-solid-70); }
 
-.rd-prompt-block {
+.rd-neg-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.rd-neg-item {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
-.rd-prompt-head {
+.rd-neg-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-}
-.rd-prompt-head-left {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--color-neutral-solid-90);
-}
-.rd-prompt-head-left tabler-icon { color: var(--color-neutral-solid-60); }
-.rd-copy {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: transparent;
-  border: none;
-  padding: 4px 6px;
-  font: inherit;
-  font-size: 13px;
-  color: var(--color-neutral-solid-70);
-  cursor: pointer;
-  border-radius: 6px;
-}
-.rd-copy:hover { background: var(--color-neutral-solid-05); color: var(--color-neutral-solid-90); }
-.rd-prompt-body {
-  border: 1px solid var(--color-neutral-solid-10);
-  border-radius: 10px;
-  padding: 12px 14px;
-  font-size: 14px;
-  color: var(--color-neutral-solid-80);
-  background: #FFFFFF;
-}
-
-/* Feedback callout cards */
-.rd-fb-card {
-  display: flex;
-  align-items: flex-start;
   gap: 12px;
-  border-radius: 12px;
-  padding: 14px 16px;
 }
-.rd-fb-card--negative {
-  background: #FEF6F6;
-  border: 1px solid #FBC9C9;
-}
-.rd-fb-card--reco {
-  background: linear-gradient(135deg, #ECFDF5 0%, #E0F2FE 100%);
-  border: 1px solid #A7E2BE;
-}
-.rd-fb-card-icon {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
+.rd-neg-index {
+  flex: 0 0 28px;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid var(--color-neutral-solid-15);
   background: #FFFFFF;
-  border: 1px solid #FBC9C9;
-  color: #DC2626;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-neutral-solid-60);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  flex: 0 0 30px;
 }
-.rd-fb-card-content { flex: 1; }
-.rd-fb-card-title {
-  font-weight: 600;
-  font-size: 14px;
-  margin-bottom: 4px;
-}
-.rd-fb-card--negative .rd-fb-card-title { color: #DC2626; }
-.rd-fb-card-title--reco {
-  color: #15803D;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-.rd-fb-card-reason {
+.rd-neg-label {
+  flex: 1;
+  min-width: 0;
   font-size: 13.5px;
-  color: var(--color-neutral-solid-80);
+  color: var(--color-neutral-solid-90);
 }
-.rd-fb-tag {
-  display: inline-flex;
-  align-items: center;
-  margin-top: 8px;
-  padding: 3px 10px;
+.rd-neg-count {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 16px;
+  color: #DC2626;
+  font-variant-numeric: tabular-nums;
+}
+.rd-neg-bar {
+  margin-left: 40px;
+  height: 6px;
   border-radius: 999px;
-  background: var(--color-primary-20);
-  color: var(--color-primary-80);
-  font-size: 12px;
-  font-weight: 500;
+  background: var(--color-neutral-solid-10);
+  overflow: hidden;
+}
+.rd-neg-bar-fill {
+  height: 100%;
+  background: #DC2626;
+  border-radius: 999px;
+  transition: width 0.25s ease;
+}
+
+.rd-neg-comments {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.rd-neg-comments li {
+  border: 1px solid var(--color-neutral-solid-10);
+  background: #FFFFFF;
+  border-radius: 10px;
+  padding: 12px 16px;
+  font-size: 13.5px;
+  line-height: 1.45;
+  color: var(--color-neutral-solid-80);
 }

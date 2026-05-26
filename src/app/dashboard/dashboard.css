@@ -198,11 +198,53 @@
   display: flex;
 }
 
-.map-mode-toggle {
+/* Floating control row above the map: a separate Global button on the left
+   that returns the drawer to worldwide stats, and the By Region / By Country
+   toggle on the right. The whole row slides left when the drawer opens so
+   nothing is hidden behind it. */
+.map-mode-row {
   position: absolute;
   top: 22px;
   right: 22px;
   z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  transition: right 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.region-panel.is-drawer-open .map-mode-row {
+  right: calc(var(--drawer-w, 460px) + 22px);
+}
+
+/* Global button — distinct from the toggle. Blue gradient border via the
+   classic two-background trick (gradient on the border-box, white on the
+   padding-box). Persistent affordance to return to the global view. */
+.global-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background:
+    linear-gradient(#FFFFFF, #FFFFFF) padding-box,
+    linear-gradient(135deg, #3B82F6 0%, #06B6D4 100%) border-box;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  color: #1D4ED8;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(59, 130, 246, 0.12);
+  transition: box-shadow 0.15s ease, transform 0.1s ease;
+}
+.global-btn:hover {
+  box-shadow: 0 4px 10px rgba(59, 130, 246, 0.2);
+}
+.global-btn:active { transform: translateY(1px); }
+.global-btn tabler-icon { color: #3B82F6; }
+
+.map-mode-toggle {
   display: inline-flex;
   gap: 6px;
   background: #FFFFFF;
@@ -210,14 +252,6 @@
   border-radius: 999px;
   padding: 4px;
   box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);
-  transition: right 0.28s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* Slide the toggle left so it stays visible above the map when the country
-   drawer slides in. --drawer-w is set inline on .region-panel and tracks
-   the live drawerWidth signal as the user drags the handle. */
-.region-panel.is-drawer-open .map-mode-toggle {
-  right: calc(var(--drawer-w, 460px) + 22px);
 }
 
 .mode-btn {
@@ -732,30 +766,74 @@
   color: var(--color-neutral-solid-80);
 }
 
-/* Topic / role pills — light green outline */
-.topic-pills {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
+/* Topic treemap — replaces the previous pill list. Layout adapts to the
+   number of cells (2-5). Colours descend by rank with the rank-1 tile in the
+   strongest tone, matching the collection-detail treemap palette. */
+.topic-treemap {
+  display: grid;
+  gap: 5px;
+  min-height: 140px;
 }
+.topic-treemap[data-count="1"] { grid-template-columns: 1fr; grid-template-rows: 1fr; }
+.topic-treemap[data-count="2"] { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr; }
+.topic-treemap[data-count="3"] {
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+}
+.topic-treemap[data-count="3"] .topic-cell[data-rank="1"] { grid-column: span 2; }
+.topic-treemap[data-count="4"] {
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+}
+.topic-treemap[data-count="5"] {
+  grid-template-columns: repeat(6, 1fr);
+  grid-template-rows: 1fr 1fr;
+}
+.topic-treemap[data-count="5"] .topic-cell[data-rank="1"],
+.topic-treemap[data-count="5"] .topic-cell[data-rank="2"] { grid-column: span 3; }
+.topic-treemap[data-count="5"] .topic-cell[data-rank="3"],
+.topic-treemap[data-count="5"] .topic-cell[data-rank="4"],
+.topic-treemap[data-count="5"] .topic-cell[data-rank="5"] { grid-column: span 2; }
 
-.topic-pill {
-  display: inline-flex;
-  align-items: center;
-  height: 26px;
-  padding: 0 12px;
-  border-radius: 999px;
-  border: 1px solid #B8E6CB;
-  color: #15803D;
-  background: #FFFFFF;
-  font-size: 12.5px;
+.topic-cell {
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: #FFFFFF;
   text-decoration: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
   cursor: pointer;
-  transition: background 0.12s ease, border-color 0.12s ease;
+  transition: filter 0.15s ease, transform 0.15s ease;
 }
-.topic-pill:hover {
-  background: #ECFDF5;
-  border-color: #16A34A;
+.topic-cell:hover { filter: brightness(1.08); transform: translateY(-1px); }
+.topic-cell:focus-visible {
+  outline: 2px solid var(--color-primary-50);
+  outline-offset: 2px;
+}
+.topic-cell[data-rank="1"] { background: #1B6F8F; }
+.topic-cell[data-rank="2"] { background: #2A8AAF; }
+.topic-cell[data-rank="3"] { background: #2EA3CC; }
+.topic-cell[data-rank="4"] { background: #46BAD7; }
+.topic-cell[data-rank="5"] { background: #76CFE0; color: #0F4E63; }
+
+.topic-cell-label {
+  font-weight: 600;
+  font-size: 12.5px;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.topic-cell-pct {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: -0.01em;
 }
 
 /* Top Collections list */

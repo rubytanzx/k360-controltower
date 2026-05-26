@@ -1473,7 +1473,122 @@
   font-size: 13px;
 }
 
-/* ---- VPU Usage panel ---- */
+/* ---- VPU Breakdown panel (Usage / Contribution toggle) ---- */
+.vpu-breakdown-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.vpu-mode-tabs {
+  display: inline-flex;
+  gap: 4px;
+  background: var(--color-neutral-solid-05);
+  border-radius: 999px;
+  padding: 3px;
+  flex: 0 0 auto;
+}
+.vpu-mode-tab {
+  background: transparent;
+  border: none;
+  border-radius: 999px;
+  padding: 5px 12px;
+  font: inherit;
+  font-size: 12.5px;
+  color: var(--color-neutral-solid-60);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.vpu-mode-tab:hover { color: var(--color-neutral-solid-90); }
+.vpu-mode-tab.is-active {
+  background: #FFFFFF;
+  color: var(--color-primary-80);
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+}
+
+/* Contribution mode — pie + legend.
+   Pie + legend are centered as a group inside the panel so the leftover
+   space is split evenly rather than dumping on the right. The legend uses
+   a fixed-width column for the VPU code so every percentage aligns in a
+   single vertical column on the right edge of the legend block. */
+.vpu-pie-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  flex: 1;
+  min-height: 0;
+}
+.vpu-pie-svg {
+  width: 360px;
+  height: 360px;
+  flex: 0 0 360px;
+}
+.vpu-pie-legend {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 0 0 auto;
+  font-size: 13px;
+  color: var(--color-neutral-solid-80);
+}
+.vpu-pie-legend li {
+  /* 12px dot · 90px code (fits IFCINFRA at 13px font) · auto % — gap 8px
+     between columns gives the "close to %" reading the user asked for
+     while still aligning all the percentages vertically. */
+  display: grid;
+  grid-template-columns: 12px 90px auto;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+  cursor: help;
+}
+.vpu-pie-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+}
+.vpu-pie-legend-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.vpu-pie-legend-pct {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--color-neutral-solid-90);
+  font-variant-numeric: tabular-nums;
+}
+/* Tooltip — full VPU unit name on hover */
+.vpu-pie-legend li.has-tooltip::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: 18px;
+  bottom: calc(100% + 6px);
+  z-index: 10;
+  background: var(--color-neutral-solid-90);
+  color: #FFFFFF;
+  font-size: 11.5px;
+  font-weight: 500;
+  white-space: nowrap;
+  padding: 6px 10px;
+  border-radius: 6px;
+  box-shadow: 0 4px 10px rgba(15, 23, 42, 0.18);
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(2px);
+  transition: opacity 0.12s ease, transform 0.12s ease;
+}
+.vpu-pie-legend li.has-tooltip:hover::after {
+  opacity: 1;
+  transform: translateY(0);
+}
+
 .vpu-headline {
   display: flex;
   align-items: baseline;
