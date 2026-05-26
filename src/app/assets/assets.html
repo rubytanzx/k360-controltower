@@ -116,26 +116,65 @@
     </article>
 
     <article class="cd-panel">
-      <h3 class="cd-panel-title">VPU Usage</h3>
+      <header class="vpu-breakdown-head">
+        <h3 class="cd-panel-title">VPU Breakdown</h3>
+        <div class="vpu-mode-tabs" role="tablist" aria-label="VPU breakdown mode">
+          <button
+            type="button"
+            class="vpu-mode-tab"
+            role="tab"
+            [class.is-active]="vpuBreakdownMode() === 'usage'"
+            [attr.aria-selected]="vpuBreakdownMode() === 'usage'"
+            (click)="setVpuBreakdownMode('usage')"
+          >Usage</button>
+          <button
+            type="button"
+            class="vpu-mode-tab"
+            role="tab"
+            [class.is-active]="vpuBreakdownMode() === 'contribution'"
+            [attr.aria-selected]="vpuBreakdownMode() === 'contribution'"
+            (click)="setVpuBreakdownMode('contribution')"
+          >Contribution</button>
+        </div>
+      </header>
 
-      <div class="vpu-headline">
-        <span class="vpu-headline-value">{{ vpuUsage.reaches }}</span>
-        <span class="vpu-headline-suffix">of {{ vpuUsage.totalVpus }} VPUs</span>
-        <span class="vpu-headline-sub">accessed at least one collection</span>
-      </div>
+      @if (vpuBreakdownMode() === 'usage') {
+        <div class="vpu-headline">
+          <span class="vpu-headline-value">{{ vpuUsage.reaches }}</span>
+          <span class="vpu-headline-suffix">of {{ vpuUsage.totalVpus }} VPUs</span>
+          <span class="vpu-headline-sub">accessed at least one collection</span>
+        </div>
 
-      <ul class="vpu-list">
-        @for (v of vpuUsage.top; track v.code) {
-          <li class="vpu-row">
-            <span class="vpu-row-code">{{ v.code }}</span>
-            <span class="vpu-row-name">{{ v.name }}</span>
-            <span class="vpu-row-bar">
-              <span class="vpu-row-bar-fill" [style.width.%]="v.pct"></span>
-            </span>
-            <span class="vpu-row-pct">{{ v.pct }}%</span>
-          </li>
-        }
-      </ul>
+        <ul class="vpu-list">
+          @for (v of vpuUsage.top; track v.code) {
+            <li class="vpu-row">
+              <span class="vpu-row-code">{{ v.code }}</span>
+              <span class="vpu-row-name">{{ v.name }}</span>
+              <span class="vpu-row-bar">
+                <span class="vpu-row-bar-fill" [style.width.%]="v.pct"></span>
+              </span>
+              <span class="vpu-row-pct">{{ v.pct }}%</span>
+            </li>
+          }
+        </ul>
+      } @else {
+        <div class="vpu-pie-wrap">
+          <svg class="vpu-pie-svg" viewBox="0 0 100 100" aria-label="VPU contribution pie chart">
+            @for (s of vpuContributionSlices(); track s.code) {
+              <path [attr.d]="s.pathD" [attr.fill]="s.color" stroke="#FFFFFF" stroke-width="0.6" />
+            }
+          </svg>
+          <ul class="vpu-pie-legend">
+            @for (s of vpuContributionSlices(); track s.code) {
+              <li class="has-tooltip" [attr.data-tooltip]="s.name">
+                <span class="vpu-pie-dot" [style.background]="s.color"></span>
+                <span class="vpu-pie-legend-label">{{ s.code }}</span>
+                <span class="vpu-pie-legend-pct">{{ s.pct }}%</span>
+              </li>
+            }
+          </ul>
+        </div>
+      }
     </article>
   </section>
 

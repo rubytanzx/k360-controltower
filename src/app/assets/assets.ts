@@ -13,6 +13,16 @@ type Workspace = 'wb' | 'ifc';
 type MapMode = 'region' | 'country';
 type CurationStatus = 'Curated' | 'Pending Review' | 'In Progress' | 'Auto-Ingested';
 type RegSortKey = 'name' | 'status' | 'verticals' | 'sectors' | 'lastUpdated' | 'utilization' | 'queries';
+type VpuBreakdownMode = 'usage' | 'contribution';
+
+interface VpuContributionSlice {
+  code: string;
+  name: string;       // full unit name — surfaced as tooltip
+  count: number;
+  pct: number;
+  color: string;
+  pathD: string;
+}
 
 interface KpiMetric { value: string; label?: string; delta?: string; }
 interface OverviewKpi { title: string; metrics: KpiMetric[]; sub?: string; }
@@ -279,9 +289,16 @@ export class Assets {
   // =========================================================================
   private readonly mapSanitizer = inject(DomSanitizer);
 
-  // ----- VPU Usage (aggregate across all collections in this workspace) -----
-  // `reaches` = distinct VPUs with any collection access in the period;
-  // `totalVpus` = full WBG + IFC VPU catalogue (matches VPU_GROUPS).
+  // ----- VPU Breakdown panel (Usage / Contribution toggle) -----
+  // Usage view: which VPUs are *consuming* collections (Power BI Adoption-by-
+  // VPU style). Contribution view: which VPUs are *authoring* the resources
+  // sitting inside those collections — the provenance lens we added on the
+  // resource side. Pie chart only renders in Contribution mode.
+  readonly vpuBreakdownMode = signal<VpuBreakdownMode>('usage');
+  setVpuBreakdownMode(m: VpuBreakdownMode) { this.vpuBreakdownMode.set(m); }
+
+  // Usage data — `reaches` = distinct VPUs with any collection access in the
+  // period; `totalVpus` = full WBG + IFC catalogue (matches VPU_GROUPS).
   readonly vpuUsage = {
     reaches: 54,
     totalVpus: 69,
@@ -296,6 +313,58 @@ export class Assets {
       { code: 'IFCINFRA', name: 'IFC Infrastructure',                         pct: 44 },
     ],
   };
+
+  // Contribution data — Σ curated resources contributed by each VPU across
+  // every collection. Mock counts sum to a plausible portion of the 4,230
+  // curated resources reported on the Overview KPI row.
+  private readonly vpuContribution = [
+    { code: 'MTI',      name: 'Macroeconomics, Trade & Investment',         count: 920 },
+    { code: 'SCA',      name: 'Climate Change',                             count: 760 },
+    { code: 'GGW',      name: 'Water Global Practice',                      count: 590 },
+    { code: 'OPCS',     name: 'Operations Policy & Country Services',       count: 480 },
+    { code: 'AFCE1',    name: 'Eastern & Southern Africa CU 1',             count: 360 },
+    { code: 'EFI',      name: 'Equitable Growth, Finance & Institutions',   count: 320 },
+    { code: 'GGE',      name: 'Environment',                                count: 280 },
+    { code: 'IFCINFRA', name: 'IFC Infrastructure',                         count: 220 },
+  ];
+
+  // Same palette as the collection-detail Contribution pie so the two reads
+  // feel like one visual language.
+  private static readonly VPU_PALETTE = [
+    '#E879F9', '#A78BFA', '#67E8F9', '#34D399',
+    '#A5B4FC', '#FCD34D', '#FB7185', '#22D3EE',
+  ];
+
+  /** Pie-chart slice paths for the Contribution mode of the VPU Breakdown
+   *  panel. Starts at 12 o'clock and walks clockwise. */
+  readonly vpuContributionSlices = computed<VpuContributionSlice[]>(() => {
+    const rows = this.vpuContribution;
+    const total = rows.reduce((s, r) => s + r.count, 0);
+    if (total === 0) return [];
+    const cx = 50, cy = 50, r = 40;
+    let cumulative = 0;
+    return rows.map((row, i) => {
+      const startAngle = (cumulative / total) * 2 * Math.PI - Math.PI / 2;
+      const endAngle = ((cumulative + row.count) / total) * 2 * Math.PI - Math.PI / 2;
+      cumulative += row.count;
+      const x1 = cx + r * Math.cos(startAngle);
+      const y1 = cy + r * Math.sin(startAngle);
+      const x2 = cx + r * Math.cos(endAngle);
+      const y2 = cy + r * Math.sin(endAngle);
+      const largeArc = endAngle - startAngle > Math.PI ? 1 : 0;
+      const pathD = rows.length === 1
+        ? `M ${cx - r},${cy} A ${r},${r} 0 1 1 ${cx + r},${cy} A ${r},${r} 0 1 1 ${cx - r},${cy} Z`
+        : `M ${cx},${cy} L ${x1.toFixed(2)},${y1.toFixed(2)} A ${r},${r} 0 ${largeArc} 1 ${x2.toFixed(2)},${y2.toFixed(2)} Z`;
+      return {
+        code: row.code,
+        name: row.name,
+        count: row.count,
+        pct: Math.round((row.count / total) * 100),
+        color: Assets.VPU_PALETTE[i % Assets.VPU_PALETTE.length],
+        pathD,
+      };
+    });
+  });
 
   // ----- Global Usage map -----
   readonly mapMode = signal<MapMode>('region');
