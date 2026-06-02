@@ -1,12 +1,16 @@
-import { Component, inject, signal } from '@angular/core';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { Component, HostListener, inject, signal } from '@angular/core';
+import { Router, RouterOutlet } from '@angular/router';
 import { TablerIconComponent } from '@tabler/icons-angular';
 import { AiChatService } from './shared/ai-chat.service';
+import { ScrollNavService } from './shared/scroll-nav.service';
+import { DateRangeFilter } from './shared/date-range-filter/date-range-filter';
+
+type Workspace = 'wb' | 'ops';
 
 interface NavLink {
   label: string;
   icon: string;
-  route?: string;
+  sectionId?: string;
 }
 
 type AiSection =
@@ -19,7 +23,7 @@ type AiMessage =
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, TablerIconComponent],
+  imports: [RouterOutlet, TablerIconComponent, DateRangeFilter],
   templateUrl: './app.html',
   styleUrl: './app.css',
 })
@@ -28,19 +32,47 @@ export class App {
   readonly expanded = signal(false);
 
   readonly nav: NavLink[] = [
-    { label: 'Home', icon: 'home', route: '/' },
-    { label: 'Assets', icon: 'database', route: '/assets' },
-    { label: 'Prompts', icon: 'messages', route: '/prompts' },
-    { label: 'Users', icon: 'users-group', route: '/users' },
-    { label: 'Feedback', icon: 'message-check', route: '/feedback' },
+    { label: 'Home', icon: 'home', sectionId: 'dashboard' },
+    { label: 'Collections', icon: 'database', sectionId: 'collections' },
+    { label: 'Agents', icon: 'robot', sectionId: 'agents' },
+    { label: 'Prompts', icon: 'messages', sectionId: 'prompts' },
+    { label: 'Users', icon: 'users-group', sectionId: 'users' },
+    { label: 'Feedback', icon: 'message-check', sectionId: 'feedback' },
+    { label: 'Performance', icon: 'gauge', sectionId: 'performance' },
   ];
 
   readonly footerLinks: NavLink[] = [
     { label: 'Help', icon: 'help-circle' },
   ];
 
+  readonly workspace = signal<Workspace>('wb');
+  readonly scrolled = signal(false);
+
+  @HostListener('window:scroll')
+  onScroll() { this.scrolled.set(window.scrollY > 2); }
+
+  private readonly router = inject(Router);
+  private readonly scrollNav = inject(ScrollNavService);
+  readonly activeSection = this.scrollNav.activeSection;
+
   toggle() {
     this.expanded.update((v) => !v);
+  }
+
+  goToSection(id: string) {
+    // Detail pages (e.g. /assets/collection/foo) aren't part of the one-page
+    // scroll. From there, route back to Home and remember which section to
+    // land on; otherwise smooth-scroll in place.
+    const onHome = this.router.url === '/' || /^\/(assets|prompts|users|feedback)(\?|$)/.test(this.router.url);
+    if (!onHome) {
+      this.scrollNav.pendingTarget.set(id);
+      this.router.navigateByUrl('/');
+      return;
+    }
+    const el = document.getElementById(`section-${id}`);
+    if (!el) return;
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    this.scrollNav.activeSection.set(id);
   }
 
   // ---- Ask AI panel (state lives in shared service so any page can open it) ----

@@ -7,17 +7,17 @@
 
     <nav class="nav">
       @for (item of nav; track item.label) {
-        @if (item.route) {
-          <a
+        @if (item.sectionId; as sid) {
+          <button
+            type="button"
             class="nav-item"
-            [routerLink]="item.route"
-            routerLinkActive="is-active"
-            [routerLinkActiveOptions]="{ exact: item.route === '/' }"
+            [class.is-active]="activeSection() === sid"
+            (click)="goToSection(sid)"
             [attr.aria-label]="item.label"
           >
             <tabler-icon [icon]="item.icon" [size]="22" />
             <span class="nav-label">{{ item.label }}</span>
-          </a>
+          </button>
         } @else {
           <a class="nav-item" [attr.aria-label]="item.label">
             <tabler-icon [icon]="item.icon" [size]="22" />
@@ -56,6 +56,32 @@
   </aside>
 
   <main class="content">
+    <header class="topbar" [class.is-scrolled]="scrolled()">
+      <p class="topbar-greeting">
+        <strong>Welcome back,</strong>
+        <span class="topbar-greeting-name">Nick</span>
+      </p>
+
+      <div class="topbar-actions">
+        <app-date-range-filter />
+
+        <div class="workspace-toggle" role="group" aria-label="Workspace">
+          <button
+            type="button"
+            class="workspace-btn"
+            [class.is-active]="workspace() === 'wb'"
+            (click)="workspace.set('wb')"
+          >World Bank Group</button>
+          <button
+            type="button"
+            class="workspace-btn"
+            [class.is-active]="workspace() === 'ops'"
+            (click)="workspace.set('ops')"
+          >Operational Staff</button>
+        </div>
+      </div>
+    </header>
+
     <router-outlet />
   </main>
 

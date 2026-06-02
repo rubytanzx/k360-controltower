@@ -835,6 +835,31 @@
   color: var(--color-neutral-solid-80);
 }
 
+/* ============= Download breakdown (Tasks / Download Rate card) ============= */
+
+.dl-breakdown {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+}
+
+.dl-item {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.dl-count {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-neutral-solid-80);
+}
+
+.dl-label {
+  font-size: 12px;
+  color: var(--color-neutral-solid-50);
+}
+
 /* ============= Responsive ============= */
 @media (max-width: 1180px) {
   .kpi-grid--4    { grid-template-columns: repeat(2, minmax(0, 1fr)); }

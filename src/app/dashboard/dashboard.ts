@@ -19,7 +19,9 @@ interface KpiMetric {
 interface KpiCard {
   title: string;
   metrics: KpiMetric[];
+  secondaryMetrics?: KpiMetric[];
   sub?: string;
+  barPct?: number;
 }
 
 interface CountryStat {
@@ -124,32 +126,44 @@ export class Dashboard {
     return { country: code, ...extra };
   }
 
-  // ---- K360 Overview KPIs ----
   // ---- KPI cards — K360 Master Data Extract (Power BI Jan 1 – May 19, 2026) ----
   readonly kpis: KpiCard[] = [
     {
-      title: 'Total K360 Usage',
+      title: 'K360 Adoption',
       metrics: [
-        { value: '2,876',  label: 'prompts',    delta: '+18%' },
-        { value: '30,020', label: 'page views', delta: '+12%' },
+        { value: '3,095 / ~21,000', delta: '+24 new' },
       ],
-      sub: 'TOR Genie · Sherlock · Lessons Explorer drive most actions',
+      sub: 'unique active users out of staff',
+      barPct: 78,
     },
     {
-      title: 'Adoption Trend',
+      title: 'Engagement',
       metrics: [
-        { value: '16.73%', delta: '+2.1pp WoW' },
-        { value: '3,095',  label: 'unique active staff', delta: '+12%' },
+        { value: '89.3%', delta: '+18%' },
       ],
-      sub: 'target: 50% adoption by Dec 2026',
+      sub: 'retention rate',
+      secondaryMetrics: [
+        { value: '3',     label: 'avg visits/user' },
+        { value: '2,923', label: 'repeat users' },
+      ],
     },
     {
-      title: 'Retention Rate',
+      title: 'Usage Volume',
       metrics: [
-        { value: '83.88%', delta: '+2.1pp WoW' },
-        { value: '2,923',  label: 'repeat users' },
+        { value: '30,020' },
       ],
-      sub: 'returning within 30 days (94.4% of unique visitors)',
+      sub: 'total page views',
+      secondaryMetrics: [
+        { value: '3.2',   label: 'depth/session' },
+        { value: '50.5%', label: 'intent clarity' },
+      ],
+    },
+    {
+      title: 'Prompts',
+      metrics: [
+        { value: '639', delta: '+18%' },
+      ],
+      sub: 'submitted to K360',
     },
   ];
 

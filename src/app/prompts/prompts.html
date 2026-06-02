@@ -1,7 +1,6 @@
 <header class="page-header">
   <div class="page-header-title">
     <h1 class="title">Prompts</h1>
-    <p class="page-subtitle">Track query intent, topic coverage, and friction signals across the knowledge platform.</p>
   </div>
 
   <div class="prompts-filter-bar">
@@ -14,28 +13,6 @@
     <app-date-range-filter />
   </div>
 </header>
-
-<!-- KPI row (5 cards) — reuses shared homepage .kpi-card -->
-<section class="kpi-grid kpi-grid--5">
-  @for (k of pageKpis; track k.title) {
-    <article class="kpi-card">
-      <h3 class="kpi-card-title">{{ k.title }}</h3>
-      <div class="kpi-metrics">
-        @for (m of k.metrics; track $index; let i = $index) {
-          @if (i > 0) { <span class="kpi-metric-sep" aria-hidden="true">|</span> }
-          <div class="kpi-metric">
-            <span class="kpi-metric-value">{{ m.value }}</span>
-            @if (m.label) { <span class="kpi-metric-label">{{ m.label }}</span> }
-            @if (m.delta) { <span class="kpi-metric-delta">{{ m.delta }}</span> }
-          </div>
-        }
-      </div>
-      @if (k.sub) {
-        <p class="kpi-card-sub">{{ k.sub }}</p>
-      }
-    </article>
-  }
-</section>
 
 <!-- Prompt Intent Categories | Knowledge Friction Signals -->
 <section class="prompts-row">

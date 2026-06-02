@@ -1,0 +1,24 @@
+<header class="page-header">
+  <div class="page-header-title">
+    <h1 class="title">Performance</h1>
+  </div>
+</header>
+
+<section class="kpi-grid kpi-grid--4">
+  @for (k of kpis; track k.title) {
+    <article class="kpi-card">
+      <h3 class="kpi-card-title">{{ k.title }}</h3>
+      <div class="kpi-metrics">
+        <div class="kpi-metric">
+          <span class="kpi-metric-value">{{ k.value }}</span>
+          @if (k.delta) {
+            <span class="kpi-metric-delta" [class]="deltaClass(k)">{{ k.delta }}</span>
+          }
+        </div>
+      </div>
+      @if (k.sub) {
+        <p class="kpi-card-sub">{{ k.sub }}</p>
+      }
+    </article>
+  }
+</section>

@@ -1,16 +1,16 @@
 import { Routes } from '@angular/router';
 
+const home = () => import('./home/home').then((m) => m.Home);
+
 export const routes: Routes = [
-  {
-    path: '',
-    pathMatch: 'full',
-    loadComponent: () =>
-      import('./dashboard/dashboard').then((m) => m.Dashboard),
-  },
-  {
-    path: 'assets',
-    loadComponent: () => import('./assets/assets').then((m) => m.Assets),
-  },
+  { path: '', pathMatch: 'full', loadComponent: home },
+  // Aliases — existing in-page routerLinks like routerLink="/assets" still work
+  // and Home will scroll to the matching section based on the path segment.
+  { path: 'assets', pathMatch: 'full', loadComponent: home },
+  { path: 'prompts', pathMatch: 'full', loadComponent: home },
+  { path: 'users', pathMatch: 'full', loadComponent: home },
+  { path: 'feedback',     pathMatch: 'full', loadComponent: home },
+  { path: 'performance',  pathMatch: 'full', loadComponent: home },
   {
     path: 'assets/collection/:slug',
     loadComponent: () =>
@@ -22,22 +22,8 @@ export const routes: Routes = [
       import('./assets/agent-detail/agent-detail').then((m) => m.AgentDetail),
   },
   {
-    path: 'prompts',
-    loadComponent: () =>
-      import('./prompts/prompts').then((m) => m.Prompts),
-  },
-  {
     path: 'prompts/analysis',
     loadComponent: () =>
       import('./prompts/analysis/analysis').then((m) => m.Analysis),
-  },
-  {
-    path: 'users',
-    loadComponent: () => import('./users/users').then((m) => m.Users),
-  },
-  {
-    path: 'feedback',
-    loadComponent: () =>
-      import('./feedback/feedback').then((m) => m.Feedback),
   },
 ];

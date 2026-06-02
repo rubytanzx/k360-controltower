@@ -5,7 +5,7 @@
      aligns with the sidebar NT avatar (100vh − 40px content top padding
      − 16px content bottom padding). Using fixed height (not min-height)
      prevents children's intrinsic sizes from pushing the page taller. */
-  height: calc(100vh - 56px);
+  height: calc(100vh - 108px);
   box-sizing: border-box;
   /* Full width of .content's inner area — the 32px horizontal padding on
      .content provides the gap from the sidebar and the window edge. */
@@ -136,7 +136,7 @@
 .ws-switch.is-on .ws-switch-knob { transform: translateX(20px); }
 
 /* ---------- Section header ---------- */
-.dash-section { margin-bottom: 32px; }
+.dash-section { margin-bottom: 24px; }
 
 /* Last section (region/country map) stretches to fill remaining viewport */
 .dash-section.dash-section--fill {
