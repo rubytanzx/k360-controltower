@@ -1,51 +1,15 @@
-<header class="page-header">
-  <h1 class="welcome">Welcome back, Nick</h1>
 
-  <div class="page-header-actions">
-    <button type="button" class="date-range-btn" aria-label="Customise Date Range">
-      <tabler-icon icon="calendar-month" [size]="16" />
-      <span>Customise Date Range</span>
-      <tabler-icon icon="chevron-down" [size]="14" />
-    </button>
-
-    <div class="workspace-toggle" role="group" aria-label="Workspace">
-      <button
-        type="button"
-        class="ws-label"
-        [class.is-active]="workspace() === 'wb'"
-        (click)="setWorkspace('wb')"
-      >World Bank</button>
-      <button
-        type="button"
-        class="ws-switch"
-        role="switch"
-        [attr.aria-checked]="workspace() === 'ifc'"
-        [class.is-on]="workspace() === 'ifc'"
-        (click)="setWorkspace(workspace() === 'ifc' ? 'wb' : 'ifc')"
-      >
-        <span class="ws-switch-knob"></span>
-      </button>
-      <button
-        type="button"
-        class="ws-label"
-        [class.is-active]="workspace() === 'ifc'"
-        (click)="setWorkspace('ifc')"
-      >IFC</button>
-    </div>
-  </div>
-</header>
-
-<!-- ============= K360 Overview ============= -->
+<!-- ============= Usage ============= -->
 <section class="dash-section">
   <header class="dash-section-head">
     <span class="dash-section-icon">
       <tabler-icon icon="chart-bar" [size]="16" />
     </span>
-    <span class="dash-section-title">K360 Overview</span>
+    <span class="dash-section-title">Usage</span>
     <span class="dash-section-rule"></span>
   </header>
 
-  <div class="kpi-grid">
+  <div class="kpi-grid kpi-grid--4">
     @for (k of kpis; track k.title) {
       <article class="kpi-card">
         <h3 class="kpi-card-title">{{ k.title }}</h3>
@@ -67,7 +31,37 @@
           }
         </div>
 
-        @if (k.sub) {
+        <!-- Sub text that labels the primary metric sits above the divider -->
+        @if (k.sub && (k.secondaryMetrics?.length || k.barPct !== undefined)) {
+          <p class="kpi-card-sub">{{ k.sub }}</p>
+        }
+
+        <hr class="kpi-card-rule" />
+
+        @if (k.secondaryMetrics?.length) {
+          <div class="kpi-metrics kpi-metrics--secondary">
+            @for (m of k.secondaryMetrics; track $index) {
+              <div class="kpi-metric">
+                <span class="kpi-metric-value">{{ m.value }}</span>
+                @if (m.label) {
+                  <span class="kpi-metric-label">{{ m.label }}</span>
+                }
+              </div>
+            }
+          </div>
+        }
+
+        @if (k.barPct !== undefined) {
+          <div class="kpi-bar-wrap">
+            <div class="kpi-bar-track">
+              <div class="kpi-bar-fill" [style.width.%]="k.barPct"></div>
+            </div>
+            <span class="kpi-bar-label">{{ k.barPct }}% of staff</span>
+          </div>
+        }
+
+        <!-- Sub text with no secondary content is itself the footer, below the divider -->
+        @if (k.sub && !(k.secondaryMetrics?.length || k.barPct !== undefined)) {
           <p class="kpi-card-sub">{{ k.sub }}</p>
         }
       </article>
@@ -75,13 +69,13 @@
   </div>
 </section>
 
-<!-- ============= K360 by Global / Region / Country ============= -->
+<!-- ============= Breakdown by Region/Country ============= -->
 <section class="dash-section dash-section--fill">
   <header class="dash-section-head">
     <span class="dash-section-icon">
       <tabler-icon icon="chart-bar" [size]="16" />
     </span>
-    <span class="dash-section-title">K360 by Global/Region/Country</span>
+    <span class="dash-section-title">Breakdown by Region/Country</span>
     <span class="dash-section-rule"></span>
   </header>
 

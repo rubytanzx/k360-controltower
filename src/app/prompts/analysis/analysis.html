@@ -69,6 +69,17 @@
         </div>
       </div>
       <p class="kpi-card-sub">{{ c.conversionCompare }}</p>
+      @if (c.downloadBreakdown?.length) {
+        <hr class="kpi-card-rule" />
+        <div class="dl-breakdown">
+          @for (d of c.downloadBreakdown!; track d.label) {
+            <div class="dl-item">
+              <span class="dl-count">{{ d.count }}</span>
+              <span class="dl-label">{{ d.label }}</span>
+            </div>
+          }
+        </div>
+      }
     </article>
 
     <article class="kpi-card">

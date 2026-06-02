@@ -101,6 +101,7 @@ interface CategoryData {
   conversionPct: number;
   conversionDeltaPct: number;
   conversionCompare: string;
+  downloadBreakdown?: { label: string; count: number }[];
 
   repeatTitle: string;
   repeatPct: number;
@@ -309,6 +310,12 @@ export class Analysis {
       // "Outputs downloaded" — only 8% of generated TORs were downloaded.
       conversionTitle: 'Download Rate',
       conversionPct: 8, conversionDeltaPct: -6, conversionCompare: 'compared to 18% platform average',
+      downloadBreakdown: [
+        { label: 'TORs',       count: 5 },
+        { label: 'Summaries',  count: 3 },
+        { label: 'Projects',   count: 2 },
+        { label: 'Lessons',    count: 1 },
+      ],
       repeatTitle: 'Repeat Generation Rate',
       repeatPct: 32, repeatDeltaPct: 4,
       subcatCountLabel: 'No. of Generations',

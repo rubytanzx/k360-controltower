@@ -1,7 +1,10 @@
 <header class="page-header">
   <div class="page-header-title">
-    <h1 class="title">Assets Overview</h1>
-    <p class="page-subtitle">Review collection health, agent performance</p>
+    @if (mode() === 'collections') {
+      <h1 class="title">Collections</h1>
+    } @else {
+      <h1 class="title">Agents</h1>
+    }
   </div>
 
   <div class="assets-filter-bar">
@@ -16,20 +19,7 @@
   </div>
 </header>
 
-<nav class="tabs">
-  <button
-    class="tab"
-    [class.is-active]="tab() === 'collections'"
-    (click)="setTab('collections')"
-  >Collections</button>
-  <button
-    class="tab"
-    [class.is-active]="tab() === 'agents'"
-    (click)="setTab('agents')"
-  >Agents</button>
-</nav>
-
-@if (tab() === 'collections') {
+@if (mode() === 'collections') {
   <!-- KPI cards — reuse the homepage .kpi-card / .kpi-grid components -->
   <section class="kpi-grid kpi-grid--4">
     @for (k of overviewKpis; track k.title) {
@@ -227,7 +217,7 @@
 }
 
 
-@if (tab() === 'agents') {
+@if (mode() === 'agents') {
 <!-- Agents KPIs (homepage-style cards) -->
 <section class="kpi-grid kpi-grid--4">
   @for (k of agentsKpis; track k.title) {
@@ -321,8 +311,6 @@
         <article
           class="node"
           [attr.data-usage]="n.usage"
-          [class.has-warning-warning]="n.warning?.severity === 'warning'"
-          [class.has-warning-danger]="n.warning?.severity === 'danger'"
           [style.left.px]="n.x"
           [style.top.px]="n.y"
           [style.width.px]="cardW"
@@ -343,13 +331,8 @@
             <span class="node-label">{{ n.label }}</span>
           </div>
 
-          @if (n.warning) {
-            <span
-              class="warning-chip"
-              [attr.data-severity]="n.warning.severity"
-            >
-              <span class="chip-dot"></span>{{ n.warning.text }}
-            </span>
+          @if (n.queries !== undefined) {
+            <span class="node-queries">{{ n.queries }} queries</span>
           }
 
           <a

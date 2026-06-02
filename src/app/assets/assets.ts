@@ -1,4 +1,4 @@
-import { Component, ElementRef, computed, effect, inject, signal, viewChild } from '@angular/core';
+import { Component, ElementRef, computed, effect, inject, input, signal, viewChild } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { TablerIconComponent } from '@tabler/icons-angular';
@@ -46,6 +46,7 @@ interface Node {
   level: 'root' | 'branch' | 'leaf';
   x: number;
   y: number;
+  queries?: number;
   warning?: { text: string; severity: ChipSeverity };
 }
 
@@ -130,7 +131,7 @@ interface CollectionKpi {
 }
 
 const CARD_W = 200;
-const CARD_H = 110;
+const CARD_H = 150;
 const VIEW_W = 1860;
 const VIEW_H = 400;
 const MIN_ZOOM = 0.3;
@@ -157,7 +158,9 @@ function curve(x1: number, y1: number, x2: number, y2: number): string {
   styleUrl: './assets.css',
 })
 export class Assets {
-  readonly tab = signal<Tab>('collections');
+  /** Which half of the assets to render. Driven by Home, which mounts one
+   *  instance per scroll section ('collections' or 'agents'). */
+  readonly mode = input.required<Tab>();
   readonly workspace = signal<Workspace>('wb');
   setWorkspace(w: Workspace) { this.workspace.set(w); }
 
@@ -197,14 +200,6 @@ export class Assets {
       metrics: [{ value: '92%', delta: '+3pp' }],
     },
   ];
-
-  constructor() {
-    const route = inject(ActivatedRoute);
-    const initial = route.snapshot.queryParamMap.get('tab');
-    if (initial === 'collections' || initial === 'agents') {
-      this.tab.set(initial);
-    }
-  }
 
   // ----- Assets Overview KPIs — K360 Master Data Extract -----
   // 128 collections, 16,201 total resources per Collections sheet.
@@ -502,19 +497,16 @@ export class Assets {
   readonly agentsData: CanvasData = {
     nodes: [
       { id: 'orch', label: 'MultiAgent Synthesis', usage: 'high', level: 'root',
-        x: 830, y: 30 },
+        x: 830, y: 30, queries: 639 },
 
-      { id: 'tor',  label: 'TOR Genie',                                    usage: 'high',   level: 'leaf', x: 25,   y: 240 },
-      { id: 'sher', label: 'Sherlock Expertise Detective',                 usage: 'high',   level: 'leaf', x: 255,  y: 240 },
-      { id: 'less', label: 'Lessons Explorer',                             usage: 'medium', level: 'leaf', x: 485,  y: 240,
-        warning: { text: 'Low Source Diversity', severity: 'warning' } },
-      { id: 'grum', label: 'Grumpy Reviewer',                              usage: 'high',   level: 'leaf', x: 715,  y: 240 },
-      { id: 'lit',  label: 'Literature Review and Policy Paper Generator', usage: 'medium', level: 'leaf', x: 945,  y: 240,
-        warning: { text: 'Conflicting Outputs', severity: 'warning' } },
-      { id: 'isr',  label: 'ISR Issues Explorer',                          usage: 'low',    level: 'leaf', x: 1175, y: 240,
-        warning: { text: 'Possible Stale Data', severity: 'danger' } },
-      { id: 'sspa', label: 'Self-Service Portfolio Analysis (SSPA)',       usage: 'high',   level: 'leaf', x: 1405, y: 240 },
-      { id: 'wbg',  label: 'WBG Translate Tool',                           usage: 'high',   level: 'leaf', x: 1635, y: 240 },
+      { id: 'tor',  label: 'TOR Genie',                                    usage: 'high',   level: 'leaf', x: 25,   y: 240, queries: 248 },
+      { id: 'sher', label: 'Sherlock Expertise Detective',                 usage: 'high',   level: 'leaf', x: 255,  y: 240, queries: 142 },
+      { id: 'less', label: 'Lessons Explorer',                             usage: 'medium', level: 'leaf', x: 485,  y: 240, queries:  52 },
+      { id: 'grum', label: 'Grumpy Reviewer',                              usage: 'high',   level: 'leaf', x: 715,  y: 240, queries: 140 },
+      { id: 'lit',  label: 'Literature Review and Policy Paper Generator', usage: 'medium', level: 'leaf', x: 945,  y: 240, queries:  43 },
+      { id: 'isr',  label: 'ISR Issues Explorer',                          usage: 'low',    level: 'leaf', x: 1175, y: 240, queries:  18 },
+      { id: 'sspa', label: 'Self-Service Portfolio Analysis (SSPA)',       usage: 'high',   level: 'leaf', x: 1405, y: 240, queries:  82 },
+      { id: 'wbg',  label: 'WBG Translate Tool',                           usage: 'high',   level: 'leaf', x: 1635, y: 240, queries:  98 },
     ],
     links: [
       { from: 'orch', to: 'tor' },
@@ -572,11 +564,11 @@ export class Assets {
   };
 
   readonly current = computed(() =>
-    this.tab() === 'agents' ? this.agentsData : this.collectionsData,
+    this.mode() === 'agents' ? this.agentsData : this.collectionsData,
   );
 
   readonly summaryLabel = computed(() =>
-    this.tab() === 'agents' ? 'Agents' : 'Sources',
+    this.mode() === 'agents' ? 'Agents' : 'Sources',
   );
 
   readonly lines = computed(() => {
@@ -688,11 +680,6 @@ export class Assets {
       this.panX.set(DEFAULT_PAN_X);
       this.panY.set(DEFAULT_PAN_Y);
     }
-  }
-
-  setTab(t: Tab) {
-    this.tab.set(t);
-    this.resetView();
   }
 
   // ----- Knowledge Collections content -----

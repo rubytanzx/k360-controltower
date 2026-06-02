@@ -337,6 +337,7 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+  height: 150px;
   z-index: 2;
   transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
@@ -395,6 +396,15 @@
   font-size: 14px;
   font-weight: 600;
   line-height: 1.3;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+.node-queries {
+  font-size: 12px;
+  color: var(--color-neutral-solid-60);
 }
 
 .warning-chip {
@@ -434,6 +444,7 @@
   font-weight: 500;
   cursor: pointer;
   text-decoration: none;
+  margin-top: auto;
 }
 .node-review:hover { color: var(--color-primary-80); }
 
