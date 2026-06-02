@@ -1,5 +1,4 @@
 import { Component } from '@angular/core';
-import { TablerIconComponent } from '@tabler/icons-angular';
 
 interface PerfKpi {
   title: string;
@@ -11,7 +10,6 @@ interface PerfKpi {
 
 @Component({
   selector: 'app-performance',
-  imports: [TablerIconComponent],
   templateUrl: './performance.html',
   styleUrl: './performance.css',
 })
