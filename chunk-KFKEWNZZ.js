@@ -1,0 +1,1 @@
+import{G as t,aa as n}from"./chunk-JUBVEBV5.js";var a=class e{activeSection=n("dashboard");pendingTarget=n(null);static \u0275fac=function(o){return new(o||e)};static \u0275prov=t({token:e,factory:e.\u0275fac,providedIn:"root"})};export{a};
